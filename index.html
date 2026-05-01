@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="description" content="우주 수학 탐험 - 별을 모아 우주 영웅이 되어요!">
+<meta name="theme-color" content="#7c3aed">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>🚀 우주 수학 탐험</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;touch-action:none}
+html,body{width:100%;height:100%;overflow:hidden;background:#000}
+canvas{display:block}
+body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
+#question-banner{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.65);backdrop-filter:blur(12px);border:2px solid rgba(255,255,255,0.2);border-radius:30px;padding:14px 32px;font-size:clamp(26px,6.5vw,46px);color:#fff;text-align:center;pointer-events:none;text-shadow:0 0 20px rgba(150,100,255,0.8);white-space:nowrap;z-index:10}
+#message-box{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);font-size:clamp(16px,4.5vw,26px);color:#fff;text-align:center;pointer-events:none;opacity:0;transition:opacity 0.4s;text-shadow:0 0 30px rgba(100,255,200,0.9);white-space:nowrap;z-index:10}
+#score-display{position:fixed;top:20px;right:20px;font-size:20px;color:rgba(255,255,255,0.85);pointer-events:none;z-index:10;text-shadow:0 0 10px rgba(255,215,0,0.5)}
+/* INTRO */
+#intro-screen{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 40%,#1a0540 0%,#050010 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+#intro-screen .rocket{font-size:clamp(60px,14vw,96px);animation:float 2.5s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+#intro-screen h1{font-size:clamp(22px,5.5vw,38px);color:#fff;text-shadow:0 0 30px #a06aff;text-align:center;margin:14px 0 10px}
+#intro-screen p{font-size:clamp(13px,3.5vw,20px);color:rgba(255,255,255,0.85);text-align:center;line-height:1.7;max-width:460px}
+/* MODE SELECT */
+.mode-select-btns{display:flex;gap:16px;margin-top:28px;flex-wrap:wrap;justify-content:center}
+.mode-select-btn{border:none;border-radius:28px;padding:18px 36px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:clamp(17px,4vw,24px);color:#fff;cursor:pointer;pointer-events:all;transition:transform 0.15s,box-shadow 0.15s;box-shadow:0 0 30px rgba(0,0,0,0.4)}
+#play-mode-btn{background:linear-gradient(135deg,#059669,#0891b2)}
+#play-mode-btn:hover{transform:scale(1.05);box-shadow:0 0 40px rgba(5,150,105,0.6)}
+#rank-mode-btn{background:linear-gradient(135deg,#7c3aed,#db2777)}
+#rank-mode-btn:hover{transform:scale(1.05);box-shadow:0 0 40px rgba(219,39,119,0.6)}
+/* TOP BUTTONS */
+#back-btn,#rank-open-btn{position:fixed;top:20px;left:20px;border-radius:20px;padding:8px 18px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;pointer-events:all;backdrop-filter:blur(8px);transition:background 0.2s;z-index:20;display:none}
+#back-btn{background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3)}
+#rank-open-btn{background:rgba(255,215,0,0.18);border:2px solid rgba(255,215,0,0.5);color:#ffd700;left:120px}
+/* PLAY SETTINGS */
+#play-settings{position:fixed;bottom:20px;left:20px;display:none;flex-direction:column;gap:8px;z-index:20}
+.setting-row{display:flex;gap:8px;align-items:center}
+.setting-label{font-size:13px;color:rgba(255,255,255,0.6);min-width:40px}
+.setting-btn{background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:14px;padding:6px 13px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:13px;color:#fff;cursor:pointer;pointer-events:all;transition:all 0.2s}
+.setting-btn.active{background:linear-gradient(135deg,rgba(124,58,237,0.6),rgba(219,39,119,0.5));border-color:rgba(200,100,255,0.7)}
+/* MILESTONE */
+#milestone-overlay{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);flex-direction:column}
+#milestone-overlay .ms-emoji{font-size:clamp(70px,17vw,110px);animation:bounce-ms 0.6s ease-in-out infinite alternate}
+@keyframes bounce-ms{from{transform:translateY(0)}to{transform:translateY(-18px)}}
+#milestone-overlay h2{font-size:clamp(22px,5.5vw,40px);color:#fff;text-shadow:0 0 30px #ffd700;text-align:center;margin:12px 20px}
+#milestone-overlay p{font-size:clamp(14px,3.5vw,22px);color:rgba(255,255,255,0.9);text-align:center;margin:0 24px 24px;line-height:1.6;max-width:480px}
+#milestone-continue{background:linear-gradient(135deg,#059669,#0891b2);border:none;border-radius:28px;padding:14px 40px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:clamp(16px,4vw,24px);color:#fff;cursor:pointer;pointer-events:all;box-shadow:0 0 30px rgba(5,150,105,0.4)}
+/* RANK OVERLAY */
+#rank-overlay{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px)}
+#rank-panel{background:linear-gradient(145deg,#1a0a3e,#0a1a3e);border:2px solid rgba(255,215,0,0.4);border-radius:28px;padding:28px 24px;width:min(92vw,420px);max-height:85vh;overflow-y:auto;color:#fff;text-align:center;box-shadow:0 0 60px rgba(255,215,0,0.2)}
+#rank-panel h3{font-size:clamp(18px,5vw,26px);color:#ffd700;text-shadow:0 0 20px rgba(255,215,0,0.6);margin-bottom:20px}
+.rank-list{list-style:none;margin-bottom:16px;padding:0}
+.rank-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;margin-bottom:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);font-size:clamp(12px,3vw,15px)}
+.rank-item.top1{background:rgba(255,215,0,0.15);border-color:rgba(255,215,0,0.4)}
+.rank-item.top2{background:rgba(192,192,192,0.12);border-color:rgba(192,192,192,0.3)}
+.rank-item.top3{background:rgba(205,127,50,0.12);border-color:rgba(205,127,50,0.3)}
+.rank-medal{font-size:18px;width:24px;text-align:center}
+.rank-name{flex:1;text-align:left}
+.rank-score{color:#ffd700;font-size:clamp(14px,3.5vw,18px);font-weight:bold}
+.rank-mode-badge{font-size:10px;color:rgba(255,255,255,0.4);padding:2px 6px;border:1px solid rgba(255,255,255,0.15);border-radius:8px}
+.rank-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+.rank-btn-action{border:2px solid rgba(255,255,255,0.2);border-radius:20px;padding:10px 22px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:14px;color:#fff;cursor:pointer;pointer-events:all;transition:opacity 0.2s}
+#rank-save-btn{background:linear-gradient(135deg,#7c3aed,#db2777);border-color:transparent}
+#rank-close-btn{background:rgba(255,255,255,0.1)}
+.rank-btn-action:active{opacity:0.75}
+#rank-status{font-size:12px;color:rgba(255,255,255,0.4);min-height:18px}
+/* SAVE OVERLAY */
+#save-overlay{position:fixed;inset:0;z-index:98;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px)}
+#save-panel{background:linear-gradient(145deg,#1a0a3e,#0a1a3e);border:2px solid rgba(160,100,255,0.5);border-radius:28px;padding:32px 28px;width:min(90vw,360px);color:#fff;text-align:center;box-shadow:0 0 60px rgba(120,60,255,0.4)}
+#save-panel h3{font-size:clamp(17px,4.5vw,24px);margin-bottom:8px;text-shadow:0 0 20px #a06aff}
+#save-panel p{font-size:14px;color:rgba(255,255,255,0.65);margin-bottom:18px}
+#player-name-input{width:100%;padding:13px 16px;border-radius:14px;border:2px solid rgba(160,100,255,0.5);background:rgba(255,255,255,0.08);color:#fff;font-family:'Arial Rounded MT Bold',sans-serif;font-size:clamp(15px,4vw,19px);text-align:center;outline:none;margin-bottom:16px}
+#player-name-input::placeholder{color:rgba(255,255,255,0.3)}
+.save-btns{display:flex;gap:10px;justify-content:center}
+#save-confirm-btn{background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:18px;padding:12px 28px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;pointer-events:all}
+#save-cancel-btn{background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:18px;padding:12px 22px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;pointer-events:all}
+/* ENDING OVERLAY */
+#ending-overlay{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,#1a0a00 0%,#000510 100%);flex-direction:column;padding:24px;text-align:center}
+#ending-overlay .end-emoji{font-size:clamp(70px,18vw,120px);animation:end-pulse 1.5s ease-in-out infinite alternate}
+@keyframes end-pulse{from{transform:scale(1) rotate(-5deg)}to{transform:scale(1.1) rotate(5deg)}}
+#ending-overlay h1{font-size:clamp(24px,6vw,44px);color:#ffd700;text-shadow:0 0 40px #ffd700;margin:16px 0 12px}
+#ending-overlay p{font-size:clamp(14px,3.5vw,22px);color:rgba(255,255,255,0.9);line-height:1.7;max-width:500px;margin-bottom:24px}
+#ending-continue{background:linear-gradient(135deg,#b45309,#ffd700);border:none;border-radius:30px;padding:16px 44px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:clamp(18px,4.5vw,28px);color:#000;cursor:pointer;pointer-events:all;font-weight:bold;box-shadow:0 0 50px rgba(255,215,0,0.5);animation:pulse-end 2s ease-in-out infinite}
+@keyframes pulse-end{0%,100%{box-shadow:0 0 50px rgba(255,215,0,0.5)}50%{box-shadow:0 0 80px rgba(255,215,0,0.9)}}
+</style>
+</head>
+<body>
+<div id="intro-screen">
+  <div class="rocket">🚀</div>
+  <h1>우주가 어두워졌어요!</h1>
+  <p>나쁜 우주 괴물이 별들을 훔쳐갔어요.<br>마법 숫자를 풀어서<br>✨ <strong>별을 되찾아 우주를 구해요!</strong><br><span style="font-size:0.8em;color:rgba(255,255,255,0.6)">별 15개마다 특별한 일이 일어나요 🌠</span></p>
+  <div class="mode-select-btns">
+    <button class="mode-select-btn" id="play-mode-btn">🎮 놀이 모드</button>
+    <button class="mode-select-btn" id="rank-mode-btn">🏆 랭킹전</button>
+  </div>
+</div>
+<div id="question-banner" style="display:none"></div>
+<div id="message-box"></div>
+<div id="score-display" style="display:none">⭐ 0</div>
+<button id="back-btn">🏠 모드</button>
+<button id="rank-open-btn">🏆 랭킹</button>
+<div id="play-settings">
+  <div class="setting-row">
+    <span class="setting-label">난이도</span>
+    <button class="setting-btn active" data-diff="1" id="d1">1</button>
+    <button class="setting-btn" data-diff="2" id="d2">2</button>
+    <button class="setting-btn" data-diff="3" id="d3">3</button>
+    <button class="setting-btn" data-diff="4" id="d4">4</button>
+    <button class="setting-btn" data-diff="5" id="d5">5</button>
+  </div>
+  <div class="setting-row">
+    <span class="setting-label">종류</span>
+    <button class="setting-btn active" data-op="add" id="op-add">덧셈</button>
+    <button class="setting-btn" data-op="sub" id="op-sub">뺄셈</button>
+    <button class="setting-btn" data-op="both" id="op-both">랜덤</button>
+  </div>
+</div>
+<div id="milestone-overlay">
+  <div class="ms-emoji" id="ms-emoji">🚀</div>
+  <h2 id="ms-title">우주선이 날아올랐어요!</h2>
+  <p id="ms-desc">별 15개를 모았어요!</p>
+  <button id="milestone-continue">계속 하기! 🌟</button>
+</div>
+<div id="rank-overlay">
+  <div id="rank-panel">
+    <h3>🏆 최고 기록</h3>
+    <ul class="rank-list" id="rank-list"><li style="color:rgba(255,255,255,0.4);padding:20px">불러오는 중...</li></ul>
+    <div class="rank-btns">
+      <button class="rank-btn-action" id="rank-save-btn">💾 내 기록 저장</button>
+      <button class="rank-btn-action" id="rank-close-btn">✅ 닫기</button>
+    </div>
+    <div id="rank-status"></div>
+  </div>
+</div>
+<div id="save-overlay">
+  <div id="save-panel">
+    <h3>🌟 기록 저장</h3>
+    <p>현재 점수: <strong id="save-score-display" style="color:#ffd700;font-size:1.3em"></strong></p>
+    <input id="player-name-input" type="text" maxlength="10" placeholder="이름을 입력해요" autocomplete="off">
+    <div class="save-btns">
+      <button id="save-confirm-btn">✨ 저장!</button>
+      <button id="save-cancel-btn">취소</button>
+    </div>
+  </div>
+</div>
+<div id="ending-overlay">
+  <div class="end-emoji">🏅</div>
+  <h1>🌟 우주 영웅 탄생! 🌟</h1>
+  <p id="ending-desc">별 400개를 모두 되찾았어요!<br>당신은 진정한 우주 영웅이 되었습니다!<br><br>✨ 하지만 우주의 황금시대를 위해<br>별은 아무리 많아도 부족해요.<br>계속 별을 모아 우주를 더욱 빛내줘요! 💫</p>
+  <button id="ending-continue">⭐ 계속 별 모으기!</button>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+<script>
+// ── GLOBAL STATE ──
+let orbs=[], blackHole=null, particles=[], question=null;
+let score=0, dragging=null, gameStarted=false;
+let currentMode=''; // 'play' or 'rank'
+let playDiff=1, playOp='add';
+let audioCtx=null;
+const PENTA=[523.25,587.33,659.25,783.99,880.00,1046.50,1174.66,1318.51];
+
+// ── RANK MODE: auto difficulty ──
+function getRankDiffConfig(s) {
+  // Stars 1-50: addition only, maxA/B scale slightly
+  // Stars 51-200: gradually more subtraction
+  // Stars 200+: fully random, harder numbers
+  let maxA,maxB;
+  if(s<=50){maxA=Math.min(3+Math.floor(s/10),8);maxB=Math.min(3+Math.floor(s/10),8);}
+  else if(s<=100){maxA=Math.min(5+Math.floor((s-50)/10),12);maxB=Math.min(5+Math.floor((s-50)/10),12);}
+  else if(s<=200){maxA=Math.min(8+Math.floor((s-100)/25),18);maxB=Math.min(8+Math.floor((s-100)/25),18);}
+  else{maxA=Math.min(12+Math.floor((s-200)/40),25);maxB=Math.min(12+Math.floor((s-200)/40),25);}
+  return {maxA,maxB};
+}
+function getRankOpType(s) {
+  if(s<=50) return 'add';
+  if(s<=100){
+    // 10% sub chance at 51, increasing to 40% at 100
+    const pSub=(s-50)/50*0.4;
+    return Math.random()<pSub?'sub':'add';
+  }
+  if(s<=200){
+    // 40% to 50% sub
+    const pSub=0.4+(s-100)/100*0.1;
+    return Math.random()<pSub?'sub':'add';
+  }
+  return Math.random()<0.5?'add':'sub';
+}
+// ── PLAY MODE: manual difficulty ──
+const PLAY_DIFF_CFG=[,{maxA:3,maxB:3},{maxA:5,maxB:5},{maxA:8,maxB:8},{maxA:12,maxB:12},{maxA:18,maxB:18}];
+
+function generateQuestion() {
+  let maxA,maxB,opType;
+  if(currentMode==='rank'){
+    const cfg=getRankDiffConfig(score);
+    maxA=cfg.maxA; maxB=cfg.maxB;
+    opType=getRankOpType(score);
+  } else {
+    const cfg=PLAY_DIFF_CFG[playDiff];
+    maxA=cfg.maxA; maxB=cfg.maxB;
+    opType=playOp==='both'?(Math.random()<0.5?'add':'sub'):playOp;
+  }
+  if(opType==='add'){
+    const a=Math.floor(Math.random()*maxA)+1;
+    const b=Math.floor(Math.random()*maxB)+1;
+    return {ans:a+b,text:`${a} + ${b} = ?`,type:'add'};
+  } else {
+    const sub=Math.floor(Math.random()*maxB)+1;
+    const ans=Math.floor(Math.random()*maxA)+1;
+    return {ans,text:`${ans+sub} − ${sub} = ?`,type:'sub'};
+  }
+}
+
+function updateScoreDisplay(){
+  let extra='';
+  if(currentMode==='rank'){
+    if(score<=50) extra=' (덧셈)';
+    else if(score<=100) extra=' (덧셈↑)';
+    else if(score<=200) extra=' (혼합)';
+    else extra=' (랜덤)';
+  } else {
+    const ops={add:'덧셈',sub:'뺄셈',both:'랜덤'};
+    extra=` (${ops[playOp]||''} Lv${playDiff})`;
+  }
+  document.getElementById('score-display').textContent=`⭐ ${score}${extra}`;
+}
+
+// ── AUDIO ──
+let bgmInterval=null, bgmStep=0;
+const BGM=[{i:0,v:0.12},{i:2,v:0.08},{i:4,v:0.12},{i:2,v:0.08},{i:5,v:0.10},{i:4,v:0.08},
+  {i:2,v:0.12},{i:0,v:0.08},{i:4,v:0.14},{i:2,v:0.08},{i:5,v:0.10},{i:7,v:0.14}];
+
+function getAudio(){
+  if(!audioCtx){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  return audioCtx;
+}
+function playTone(freq,vol=0.3,dur=0.18,type='sine'){
+  const ac=getAudio(); if(!ac) return;
+  const osc=ac.createOscillator(), gain=ac.createGain();
+  osc.connect(gain); gain.connect(ac.destination);
+  osc.type=type; osc.frequency.value=freq;
+  gain.gain.setValueAtTime(vol,ac.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+dur);
+  osc.start(); osc.stop(ac.currentTime+dur+0.05);
+}
+function playPentatonicRise(step){playTone(PENTA[Math.min(step%8,PENTA.length-1)],0.22,0.15,'triangle');}
+function playSuccessFanfare(){[0,2,4,5,7].forEach((i,idx)=>setTimeout(()=>playTone(PENTA[i],0.32,0.22,'triangle'),idx*100));}
+function playBounceTone(){playTone(200,0.18,0.12,'sawtooth');setTimeout(()=>playTone(180,0.13,0.1,'sawtooth'),80);}
+function startBGM(){
+  if(bgmInterval) return;
+  bgmInterval=setInterval(()=>{
+    const ac=getAudio(); if(!ac) return;
+    const {i,v}=BGM[bgmStep%BGM.length];
+    const osc=ac.createOscillator(), gain=ac.createGain();
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.type='triangle'; osc.frequency.value=PENTA[i];
+    gain.gain.setValueAtTime(v*0.4,ac.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.22);
+    osc.start(); osc.stop(ac.currentTime+0.25);
+    bgmStep++;
+  },200);
+}
+function vibrate(p){if(navigator.vibrate)navigator.vibrate(p);}
+
+// ── MILESTONES (every 15 stars, up to 400) ──
+const MILESTONES=[
+  {at:15,emoji:'🚀',title:'우주선이 날아올랐어요!',desc:'별 15개! 드디어 우주선이 출발했어요! 달을 향해 날아가요!'},
+  {at:30,emoji:'🌙',title:'달에 도착했어요!',desc:'별 30개! 달 토끼가 박수를 치고 있어요! 다음은 화성이에요!'},
+  {at:45,emoji:'🔴',title:'화성에 착륙했어요!',desc:'별 45개! 붉은 화성에 발자국을 남겼어요! 진정한 탐험가!'},
+  {at:60,emoji:'☄️',title:'소행성대를 통과했어요!',desc:'별 60개! 수천 개의 소행성 사이를 아슬아슬하게 통과했어요!'},
+  {at:75,emoji:'🪐',title:'목성을 만났어요!',desc:'별 75개! 태양계에서 가장 큰 행성, 목성에 도착했어요!'},
+  {at:90,emoji:'💫',title:'토성 고리를 발견했어요!',desc:'별 90개! 아름다운 토성의 고리를 직접 보았어요! 정말 신비로워요!'},
+  {at:105,emoji:'🌊',title:'천왕성을 탐험해요!',desc:'별 105개! 옆으로 누워 도는 신기한 행성 천왕성 발견!'},
+  {at:120,emoji:'🔵',title:'해왕성의 폭풍 속으로!',desc:'별 120개! 태양계 끝의 행성, 해왕성의 거대한 폭풍 속으로!'},
+  {at:135,emoji:'❄️',title:'태양계 끝에 도달했어요!',desc:'별 135개! 명왕성을 지나 태양계의 끝 오르트 구름에 도달!'},
+  {at:150,emoji:'🌌',title:'별과 별 사이의 공간!',desc:'별 150개! 어떤 별에도 속하지 않는 성간 공간에 진입했어요!'},
+  {at:165,emoji:'⭐',title:'알파 센타우리에 도착!',desc:'별 165개! 지구에서 가장 가까운 별, 알파 센타우리에 도착!'},
+  {at:180,emoji:'🎆',title:'성운 속을 날아요!',desc:'별 180개! 아름다운 색의 성운 속을 비행하고 있어요!'},
+  {at:195,emoji:'✨',title:'별 무리를 만났어요!',desc:'별 195개! 수백만 개의 별이 모인 성단을 발견했어요!'},
+  {at:210,emoji:'🌀',title:'은하 나선팔에 진입!',desc:'별 210개! 우리 은하의 아름다운 나선팔을 여행 중이에요!'},
+  {at:225,emoji:'🌠',title:'은하 중심으로!',desc:'별 225개! 우리 은하의 중심부를 향해 날아가고 있어요!'},
+  {at:240,emoji:'🕳️',title:'블랙홀을 발견했어요!',desc:'별 240개! 거대한 블랙홀 주변을 안전하게 비행했어요!'},
+  {at:255,emoji:'🚀',title:'은하 사이의 공간!',desc:'별 255개! 우리 은하를 벗어나 은하 사이의 광활한 공간으로!'},
+  {at:270,emoji:'🌌',title:'안드로메다 은하 도착!',desc:'별 270개! 250만 광년 거리의 안드로메다 은하에 도착했어요!'},
+  {at:285,emoji:'💎',title:'은하단을 여행해요!',desc:'별 285개! 수천 개의 은하가 모인 거대한 은하단이에요!'},
+  {at:300,emoji:'🏆',title:'초은하단 정복!',desc:'별 300개! 수십만 개의 은하가 모인 초은하단을 넘어섰어요! 진정한 우주 마스터!'},
+  {at:315,emoji:'🕸️',title:'우주 거대 구조물!',desc:'별 315개! 거미줄처럼 얽힌 우주의 거대 구조물을 발견했어요!'},
+  {at:330,emoji:'🔭',title:'관측 가능한 우주의 끝!',desc:'별 330개! 빛이 닿는 우주의 끝에 도달했어요! 믿을 수가 없어요!'},
+  {at:345,emoji:'🌈',title:'다른 우주의 문을 발견!',desc:'별 345개! 다른 우주로 이어지는 신비로운 문을 발견했어요!'},
+  {at:360,emoji:'💫',title:'평행 우주를 여행해요!',desc:'별 360개! 우리와 다른 법칙의 평행 우주를 여행하고 있어요!'},
+  {at:375,emoji:'🌟',title:'우주 탄생의 비밀!',desc:'별 375개! 빅뱅의 순간으로 돌아가 우주 탄생의 비밀을 보았어요!'},
+  {at:390,emoji:'👑',title:'시간과 공간의 마스터!',desc:'별 390개! 시간과 공간을 자유롭게 다루는 능력을 얻었어요!'},
+  {at:400,emoji:'🏅',title:'우주 영웅 탄생!',desc:'별 400개 달성! 진정한 우주 영웅이 되었어요!'}
+];
+
+function checkMilestone(s) {
+  const m=MILESTONES.find(x=>x.at===s);
+  if(!m) return false;
+  if(s===400){
+    // Show special ending
+    const ov=document.getElementById('ending-overlay');
+    ov.style.display='flex';
+    return true;
+  }
+  const ov=document.getElementById('milestone-overlay');
+  document.getElementById('ms-emoji').textContent=m.emoji;
+  document.getElementById('ms-title').textContent=m.title;
+  document.getElementById('ms-desc').textContent=m.desc;
+  ov.style.display='flex';
+  vibrate([100,50,100,50,300]);
+  return true;
+}
+
+// ── ORB CLASS ──
+class Orb {
+  constructor(n,x,y,isAnswer=false){
+    this.n=n; this.x=x; this.y=y;
+    this.vx=(Math.random()-0.5)*1.3; this.vy=(Math.random()-0.5)*1.3;
+    this.r=34; this.isAnswer=isAnswer;
+    this.color=[[255,100,200],[100,220,255],[255,200,80],[120,255,160],[200,130,255],[255,160,100]][n%6];
+    this.glowPhase=Math.random()*Math.PI*2;
+    this.scale=1; this.targetScale=1;
+    this.isDragged=false; this.wobble=Math.random()*Math.PI*2;
+    this.wobbleSpeed=0.02+Math.random()*0.01;
+    this.bouncing=false; this.bounceVx=0; this.bounceVy=0; this.bounceT=0;
+  }
+  update(W,H){
+    if(this.isDragged) return;
+    if(this.bouncing){
+      this.x+=this.bounceVx; this.y+=this.bounceVy;
+      this.bounceVx*=0.9; this.bounceVy*=0.9; this.bounceT++;
+      if(this.bounceT>60) this.bouncing=false;
+    } else {
+      this.x+=this.vx; this.y+=this.vy;
+    }
+    if(this.x-this.r<0){this.x=this.r;this.vx=Math.abs(this.vx);this.bounceVx=Math.abs(this.bounceVx);}
+    if(this.x+this.r>W){this.x=W-this.r;this.vx=-Math.abs(this.vx);this.bounceVx=-Math.abs(this.bounceVx);}
+    if(this.y-this.r<0){this.y=this.r;this.vy=Math.abs(this.vy);this.bounceVy=Math.abs(this.bounceVy);}
+    if(this.y+this.r>H){this.y=H-this.r;this.vy=-Math.abs(this.vy);this.bounceVy=-Math.abs(this.bounceVy);}
+    this.wobble+=this.wobbleSpeed; this.glowPhase+=0.03;
+    this.scale+=(this.targetScale-this.scale)*0.12;
+  }
+  draw(p){
+    const s=this.scale, glow=0.55+0.45*Math.sin(this.glowPhase);
+    const [r,g,b]=this.color;
+    const wobX=Math.sin(this.wobble)*2, wobY=Math.cos(this.wobble*0.7)*2;
+    p.push(); p.translate(this.x+wobX,this.y+wobY); p.scale(s);
+    for(let i=4;i>=1;i--){p.noStroke();p.fill(r,g,b,18*i*glow);p.circle(0,0,(this.r+i*12)*2);}
+    p.noStroke(); p.fill(r*0.4,g*0.4,b*0.4,220); p.circle(0,0,this.r*2);
+    p.fill(r,g,b,210); p.circle(0,0,this.r*1.7);
+    p.fill(Math.min(r+80,255),Math.min(g+80,255),Math.min(b+80,255),160); p.circle(-this.r*0.22,-this.r*0.22,this.r*0.85);
+    p.fill(255,255,255,90); p.ellipse(-this.r*0.2,-this.r*0.28,this.r*0.48,this.r*0.26);
+    p.fill(255); p.noStroke(); p.textAlign(p.CENTER,p.CENTER);
+    p.textSize(this.r*0.88); p.textStyle(p.BOLD); p.text(this.n,0,2);
+    p.pop();
+  }
+  startBounce(cx,cy){
+    const ang=Math.atan2(this.y-cy,this.x-cx), spd=9+Math.random()*4;
+    this.bounceVx=Math.cos(ang)*spd; this.bounceVy=Math.sin(ang)*spd;
+    this.bouncing=true; this.bounceT=0;
+    this.targetScale=1.3; setTimeout(()=>{this.targetScale=1;},300);
+  }
+}
+
+// ── BLACK HOLE CLASS ──
+class BlackHole {
+  constructor(x,y){this.x=x;this.y=y;this.r=58;this.phase=0;this.pulseScale=1;this.accepting=false;this.acceptT=0;}
+  update(){
+    this.phase+=0.04;
+    if(this.accepting){this.pulseScale=1+0.3*Math.sin(this.acceptT*0.3);this.acceptT++;if(this.acceptT>30){this.accepting=false;this.acceptT=0;}}
+    else{this.pulseScale+=(1-this.pulseScale)*0.1;}
+  }
+  draw(p){
+    p.push(); p.translate(this.x,this.y); p.scale(this.pulseScale);
+    for(let i=5;i>=1;i--){p.noFill();p.stroke(180,100,255,30+i*20);p.strokeWeight(2);p.circle(0,0,(this.r+i*18)*2);}
+    p.push(); p.rotate(this.phase); p.stroke(220,160,255,160); p.strokeWeight(3);
+    for(let i=0;i<8;i++){const ang=(Math.PI*2/8)*i,r1=this.r+12,r2=this.r+26;p.line(Math.cos(ang)*r1,Math.sin(ang)*r1,Math.cos(ang)*r2,Math.sin(ang)*r2);}
+    p.pop();
+    p.noStroke(); p.fill(10,0,30,240); p.circle(0,0,this.r*2);
+    p.fill(100,50,200,80); p.circle(0,0,this.r*1.2);
+    p.fill(200,150,255,200); p.circle(0,0,18); p.fill(255); p.circle(0,0,8);
+    p.fill(255,255,255,180); p.noStroke(); p.textAlign(p.CENTER,p.CENTER); p.textSize(13); p.text('여기에!',0,this.r+22);
+    p.pop();
+  }
+  contains(x,y){return Math.hypot(x-this.x,y-this.y)<this.r*1.3;}
+}
+
+// ── PARTICLE CLASS ──
+class Particle {
+  constructor(x,y,success){
+    this.x=x;this.y=y;
+    const ang=Math.random()*Math.PI*2, spd=success?(4+Math.random()*10):(1+Math.random()*3);
+    this.vx=Math.cos(ang)*spd; this.vy=Math.sin(ang)*spd;
+    this.life=1; this.decay=success?(0.025+Math.random()*0.02):(0.035+Math.random()*0.02);
+    this.r=success?(6+Math.random()*12):(3+Math.random()*5);
+    const h=Math.random()*360;
+    this.color=[Math.round(127+127*Math.sin(h*Math.PI/180)),Math.round(127+127*Math.sin((h+120)*Math.PI/180)),Math.round(127+127*Math.sin((h+240)*Math.PI/180))];
+    this.success=success;
+    this.rot=Math.random()*Math.PI*2;
+    this.rotSpeed=(Math.random()-0.5)*0.3;
+  }
+  update(){this.x+=this.vx;this.y+=this.vy;this.vx*=0.95;this.vy*=0.95;this.life-=this.decay;this.rot+=this.rotSpeed;}
+  drawStar(p,x,y,r1,r2,n){
+    let a=p.TWO_PI/n, ha=a/2.0;
+    p.beginShape();
+    for(let i=-p.PI/2;i<p.TWO_PI-p.PI/2;i+=a){
+      p.vertex(x+p.cos(i)*r2,y+p.sin(i)*r2);
+      p.vertex(x+p.cos(i+ha)*r1,y+p.sin(i+ha)*r1);
+    }
+    p.endShape(p.CLOSE);
+  }
+  draw(p){
+    if(this.life<=0) return;
+    const [r,g,b]=this.color;
+    p.push(); p.translate(this.x,this.y); p.rotate(this.rot);
+    if(this.success){
+      p.noStroke(); p.fill(r,g,b,this.life*200);
+      this.drawStar(p,0,0,this.r*0.4,this.r,5);
+      p.fill(255,255,255,this.life*255);
+      this.drawStar(p,0,0,this.r*0.2,this.r*0.5,5);
+    }else{
+      p.noStroke();p.fill(r,g,b,this.life*255);p.circle(0,0,this.r*2);
+    }
+    p.pop();
+  }
+}
+
+// ── SETUP LEVEL ──
+function setupLevel(p){
+  question=generateQuestion();
+  const qb=document.getElementById('question-banner');
+  qb.style.display='block'; qb.textContent=question.text;
+  const W=p.width,H=p.height;
+  orbs=[];
+  const used=new Set([question.ans]);
+  const decoys=[], range=Math.max(question.ans+5,12);
+  while(decoys.length<4){let d=Math.max(0,Math.floor(Math.random()*range));if(!used.has(d)){decoys.push(d);used.add(d);}}
+  const all=[question.ans,...decoys];
+  for(let i=all.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[all[i],all[j]]=[all[j],all[i]];}
+  all.forEach((n,i)=>{
+    let x,y, attempts=0;
+    do{x=80+Math.random()*(W-160);y=120+Math.random()*(H-240);attempts++;}while(Math.hypot(x-W/2,y-H/2)<140 && attempts<50);
+    orbs.push(new Orb(n,x,y,n===question.ans));
+  });
+  blackHole=new BlackHole(W/2,H/2);
+  particles=[];
+}
+
+// ── MESSAGE HELPER ──
+let msgTimer=null;
+function showMessage(text){
+  const el=document.getElementById('message-box');
+  el.textContent=text; el.style.opacity='1';
+  if(msgTimer) clearTimeout(msgTimer);
+  msgTimer=setTimeout(()=>{el.style.opacity='0';},2200);
+}
+function burst(x,y,count,success){for(let i=0;i<count;i++) particles.push(new Particle(x,y,success));}
+// ── P5 SKETCH ──
+new p5(function(p){
+  window._p5=p;
+  let bgStars=[], slowMoFactor=1, slowMoTimer=0;
+
+  p.setup=function(){
+    const cnv=p.createCanvas(window.innerWidth,window.innerHeight);
+    cnv.parent(document.body);
+    p.textFont('Arial'); p.frameRate(60);
+    for(let i=0;i<120;i++) bgStars.push({x:Math.random()*p.width,y:Math.random()*p.height,r:Math.random()*2.5+0.5,phase:Math.random()*Math.PI*2,spd:0.02+Math.random()*0.03});
+    const el=cnv.elt; el.style.touchAction='none';
+    el.addEventListener('touchstart',e=>{e.preventDefault();getAudio();if(e.touches.length>0)onPress(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+    el.addEventListener('touchmove',e=>{e.preventDefault();if(e.touches.length>0)onMove(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+    el.addEventListener('touchend',e=>{e.preventDefault();onRelease();},{passive:false});
+  };
+
+  p.windowResized=function(){
+    p.resizeCanvas(window.innerWidth,window.innerHeight);
+    if(blackHole){blackHole.x=p.width/2;blackHole.y=p.height/2;}
+    bgStars.forEach(s=>{s.x=Math.random()*p.width;s.y=Math.random()*p.height;});
+  };
+
+  p.draw=function(){
+    const dt=slowMoFactor;
+    p.background(5,0,18);
+    p.noStroke();
+    p.fill(30,10,60,40); p.ellipse(p.width*0.3,p.height*0.4,p.width*0.8,p.height*0.6);
+    p.fill(10,30,60,30); p.ellipse(p.width*0.7,p.height*0.6,p.width*0.7,p.height*0.5);
+    bgStars.forEach(s=>{s.phase+=s.spd*dt;const a=100+100*Math.sin(s.phase);p.noStroke();p.fill(255,255,255,a);p.circle(s.x,s.y,s.r*2);});
+    if(slowMoTimer>0){slowMoFactor=0.25;slowMoTimer--;}else{slowMoFactor+=(1-slowMoFactor)*0.08;}
+    if(blackHole&&gameStarted){blackHole.update();blackHole.draw(p);}
+    orbs.forEach(o=>{o.update(p.width,p.height);o.draw(p);});
+    particles=particles.filter(pt=>pt.life>0);
+    particles.forEach(pt=>{pt.update();pt.draw(p);});
+  };
+
+  function onPress(mx,my){
+    getAudio();
+    for(let i=orbs.length-1;i>=0;i--){
+      const o=orbs[i];
+      if(Math.hypot(mx-o.x,my-o.y)<o.r*1.4){
+        dragging=o; o.isDragged=true; o.targetScale=1.2;
+        playPentatonicRise(o.n); vibrate(30); break;
+      }
+    }
+  }
+  function onMove(mx,my){
+    if(!dragging) return;
+    dragging.x=mx; dragging.y=my;
+    burst(mx,my,1,false);
+  }
+  function onRelease(){
+    if(!dragging) return;
+    const o=dragging; dragging=null; o.isDragged=false; o.targetScale=1;
+    if(blackHole&&blackHole.contains(o.x,o.y)){
+      if(o.isAnswer) handleCorrect(o,p,()=>{slowMoFactor=0.15;slowMoTimer=70;});
+      else handleWrong(o);
+    } else {
+      o.vx=(Math.random()-0.5)*1.5; o.vy=(Math.random()-0.5)*1.5;
+    }
+  }
+
+  p.mousePressed=function(){if(!dragging){getAudio();onPress(p.mouseX,p.mouseY);}};
+  p.mouseDragged=function(){onMove(p.mouseX,p.mouseY);};
+  p.mouseReleased=function(){onRelease();};
+
+  window._burstCenter=function(count,success){if(gameStarted) burst(p.width/2,p.height/2,count,success);};
+  window._setupLevel=function(){if(gameStarted) setupLevel(p);};
+});
+
+// ── HANDLE CORRECT / WRONG ──
+function handleCorrect(o,p,setSlowMo){
+  score++;
+  updateScoreDisplay();
+  if(blackHole) blackHole.accepting=true;
+  orbs=orbs.filter(x=>x!==o);
+  if(setSlowMo) setSlowMo();
+  if(window._burstCenter){window._burstCenter(80,true);for(let i=0;i<3;i++)setTimeout(()=>window._burstCenter(30,true),i*80);}
+  playSuccessFanfare(); vibrate([80,40,80,40,200]);
+  const praise=[
+    '끝까지 집중하는 모습 정말 멋져! ✨',
+    '포기하지 않는 모습이 정말 용감해! 🦁',
+    '생각이 반짝반짝 빛나고 있어! 🌟',
+    '깊게 고민하고 고른 멋진 답이야! 🤔',
+    '손가락 마법으로 정확히 찾았네! 🪄',
+    '스스로 해내다니! 정말 자랑스러워! 🏅',
+    '해냈구나! 마음먹으면 다 할 수 있어! 🚀',
+    '어려운 문제도 꼼짝 못 하는걸? 😎',
+    '덕분에 숫자들이 집을 찾았대! 🏠',
+    '천천히 해도 돼! 네 속도가 완벽해! 🐢',
+    '생각이 점점 더 크게 자라나고 있어! 🌱',
+    '다음엔 어떤 마법이 펼쳐질까? 🔮',
+    '어려워도 너라면 즐겁게 해낼 수 있어! 😆',
+    '숫자 친구들이 너랑 더 놀고 싶대! 🎈',
+    '"할 수 있다"는 에너지가 느껴져! ⚡',
+    '문제를 씩씩하게 푸는 모습 최고야! 🥳',
+    '두뇌 엔진이 힘차게 돌아가고 있어! 🏎️',
+    '마음 근육이 훨씬 튼튼해졌어! 🏋️‍♂️',
+    '너의 멋진 도전을 항상 응원할게! 📣'
+  ];
+  showMessage(praise[Math.floor(Math.random()*praise.length)]);
+  const isMilestone=MILESTONES.some(x=>x.at===score);
+  if(isMilestone){
+    setTimeout(()=>{
+      const isEnding=checkMilestone(score);
+      if(!isEnding) {}
+      // milestone-continue button handles next level
+    },1200);
+  } else {
+    setTimeout(()=>{if(window._setupLevel)window._setupLevel();},1500);
+  }
+}
+function handleWrong(o){
+  if(blackHole) o.startBounce(blackHole.x,blackHole.y);
+  burst(o.x,o.y,15,false);
+  playBounceTone(); vibrate([30,20,30]);
+  const cheer=[
+    '틀려도 괜찮아! 다시 도전하자! 💪',
+    '실수해도 괜찮아! 생각이 커지는 중이야 🌱',
+    '포기하지 말고 한 번 더 해볼까? 🦁',
+    '아쉽지만 다음엔 할 수 있어! 💨',
+    '조금 어려울 수도 있어, 천천히 해봐! 🐢'
+  ];
+  showMessage(cheer[Math.floor(Math.random()*cheer.length)]);
+}
+
+// ── START GAME ──
+function startGame(mode){
+  currentMode=mode; score=0;
+  updateScoreDisplay();
+  const intro=document.getElementById('intro-screen');
+  intro.style.transition='opacity 0.7s';
+  intro.style.opacity='0';
+  setTimeout(()=>{intro.style.display='none';},700);
+  document.getElementById('score-display').style.display='block';
+  document.getElementById('back-btn').style.display='block';
+  document.getElementById('rank-open-btn').style.display='block';
+  if(mode==='play'){
+    document.getElementById('play-settings').style.display='flex';
+  }
+  gameStarted=true;
+  getAudio(); startBGM();
+  if(window._setupLevel) window._setupLevel();
+}
+
+function returnToMenu(){
+  currentMode=''; gameStarted=false; score=0; orbs=[]; blackHole=null; particles=[];
+  document.getElementById('question-banner').style.display='none';
+  document.getElementById('score-display').style.display='none';
+  document.getElementById('back-btn').style.display='none';
+  document.getElementById('rank-open-btn').style.display='none';
+  document.getElementById('play-settings').style.display='none';
+  document.getElementById('milestone-overlay').style.display='none';
+  document.getElementById('ending-overlay').style.display='none';
+  const intro=document.getElementById('intro-screen');
+  intro.style.display='flex'; intro.style.opacity='0';
+  setTimeout(()=>{intro.style.transition='opacity 0.6s';intro.style.opacity='1';},50);
+}
+
+// ── BUTTON HELPERS ──
+function addBtn(id,fn){
+  const el=document.getElementById(id); if(!el) return;
+  el.addEventListener('click',fn);
+  el.addEventListener('touchend',e=>{e.preventDefault();fn(e);},{passive:false});
+}
+function addBtns(sel,fn){
+  document.querySelectorAll(sel).forEach(el=>{
+    el.addEventListener('click',fn);
+    el.addEventListener('touchend',e=>{e.preventDefault();fn(e);},{passive:false});
+  });
+}
+
+addBtn('play-mode-btn',()=>startGame('play'));
+addBtn('rank-mode-btn',()=>startGame('rank'));
+addBtn('back-btn',()=>returnToMenu());
+addBtn('milestone-continue',()=>{
+  document.getElementById('milestone-overlay').style.display='none';
+  if(window._setupLevel) window._setupLevel();
+});
+addBtn('ending-continue',()=>{
+  document.getElementById('ending-overlay').style.display='none';
+  if(window._setupLevel) window._setupLevel();
+});
+
+// ── PLAY SETTINGS BUTTONS ──
+document.querySelectorAll('[data-diff]').forEach(btn=>{
+  ['click','touchend'].forEach(ev=>btn.addEventListener(ev,e=>{
+    e.preventDefault();
+    playDiff=parseInt(btn.dataset.diff);
+    document.querySelectorAll('[data-diff]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    if(window._setupLevel) window._setupLevel();
+  },{passive:false}));
+});
+document.querySelectorAll('[data-op]').forEach(btn=>{
+  ['click','touchend'].forEach(ev=>btn.addEventListener(ev,e=>{
+    e.preventDefault();
+    playOp=btn.dataset.op;
+    document.querySelectorAll('[data-op]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    if(window._setupLevel) window._setupLevel();
+  },{passive:false}));
+});
+
+// ── RANKINGS ──
+const JSONBIN_KEY='YOUR_MASTER_KEY_HERE';
+const JSONBIN_BIN='YOUR_BIN_ID_HERE';
+const USE_JSONBIN=JSONBIN_KEY!=='YOUR_MASTER_KEY_HERE';
+
+async function loadRankings(){
+  if(USE_JSONBIN){
+    try{
+      const res=await fetch('https://api.jsonbin.io/v3/b/'+JSONBIN_BIN+'/latest',{headers:{'X-Master-Key':JSONBIN_KEY,'X-Bin-Meta':'false'}});
+      if(!res.ok) throw new Error();
+      const data=await res.json();
+      return Array.isArray(data.rankings)?data.rankings:[];
+    }catch(e){}
+  }
+  try{return JSON.parse(localStorage.getItem('mathlab_rankings')||'[]');}catch(e){return [];}
+}
+async function saveRankingEntry(name,sc){
+  const entry={name,score:sc,mode:currentMode==='rank'?'랭킹전':'놀이',date:new Date().toLocaleDateString('ko-KR')};
+  const rankings=await loadRankings();
+  rankings.push(entry); rankings.sort((a,b)=>b.score-a.score);
+  const top=rankings.slice(0,20);
+  localStorage.setItem('mathlab_rankings',JSON.stringify(top));
+  if(USE_JSONBIN){
+    try{
+      const res=await fetch('https://api.jsonbin.io/v3/b/'+JSONBIN_BIN,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY},body:JSON.stringify({rankings:top})});
+      if(!res.ok) throw new Error();
+      return true;
+    }catch(e){return false;}
+  }
+  return true;
+}
+
+const MEDALS=['🥇','🥈','🥉'];
+async function showRankOverlay(){
+  const overlay=document.getElementById('rank-overlay');
+  const list=document.getElementById('rank-list');
+  const status=document.getElementById('rank-status');
+  overlay.style.display='flex';
+  list.innerHTML='<li style="color:rgba(255,255,255,0.4);padding:20px">🔄 불러오는 중...</li>';
+  status.textContent=USE_JSONBIN?'☁️ 온라인 랭킹':'💾 기기 저장 (jsonbin.io 설정 시 온라인 공유)';
+  const rankings=await loadRankings();
+  if(!rankings.length){list.innerHTML='<li style="color:rgba(255,255,255,0.4);padding:20px">아직 기록이 없어요! 🚀</li>';return;}
+  list.innerHTML=rankings.slice(0,15).map((r,i)=>{
+    const cls=i<3?'top'+(i+1):'';
+    const medal=i<3?MEDALS[i]:(i+1)+'.';
+    const badge=r.mode?`<span class="rank-mode-badge">${r.mode}</span>`:'';
+    return `<li class="rank-item ${cls}"><span class="rank-medal">${medal}</span><span class="rank-name">${r.name}${badge}</span><span class="rank-score">⭐${r.score}</span></li>`;
+  }).join('');
+}
+function showSaveOverlay(){
+  if(score===0){showMessage('⭐ 먼저 문제를 풀어봐요!');return;}
+  document.getElementById('save-overlay').style.display='flex';
+  document.getElementById('save-score-display').textContent='⭐ '+score;
+  document.getElementById('player-name-input').value='';
+  document.getElementById('player-name-input').focus();
+}
+
+addBtn('rank-open-btn',()=>showRankOverlay());
+addBtn('rank-close-btn',()=>{document.getElementById('rank-overlay').style.display='none';});
+addBtn('rank-save-btn',()=>{document.getElementById('rank-overlay').style.display='none';showSaveOverlay();});
+addBtn('save-cancel-btn',()=>{document.getElementById('save-overlay').style.display='none';});
+addBtn('save-confirm-btn',async()=>{
+  const name=document.getElementById('player-name-input').value.trim()||'익명';
+  const btn=document.getElementById('save-confirm-btn');
+  btn.textContent='저장 중...'; btn.style.pointerEvents='none';
+  const ok=await saveRankingEntry(name,score);
+  btn.textContent='✨ 저장!'; btn.style.pointerEvents='all';
+  document.getElementById('save-overlay').style.display='none';
+  showMessage(ok?'🏆 기록이 저장됐어요!':'⚠️ 저장 실패. 다시 시도해봐요.');
+});
+document.getElementById('player-name-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('save-confirm-btn').click();});
+</script>
+</body>
+</html>
