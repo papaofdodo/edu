@@ -32,7 +32,8 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 /* TOP BUTTONS */
 #back-btn,#rank-open-btn{position:fixed;top:20px;left:20px;border-radius:20px;padding:8px 18px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;pointer-events:all;backdrop-filter:blur(8px);transition:background 0.2s;z-index:20;display:none}
 #back-btn{background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3)}
-#rank-open-btn{background:rgba(255,215,0,0.18);border:2px solid rgba(255,215,0,0.5);color:#ffd700;left:120px}
+#rank-open-btn{background:rgba(255,215,0,0.18);border:2px solid rgba(255,215,0,0.5);color:#ffd700;top:64px;left:20px}
+#lives-display{position:fixed;top:54px;right:20px;font-size:24px;pointer-events:none;z-index:10;text-shadow:0 0 10px rgba(0,0,0,0.8)}
 /* PLAY SETTINGS */
 #play-settings{position:fixed;bottom:20px;left:20px;display:none;flex-direction:column;gap:8px;z-index:20}
 .setting-row{display:flex;gap:8px;align-items:center}
@@ -93,13 +94,15 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
   <div class="mode-select-btns">
     <button class="mode-select-btn" id="play-mode-btn">🎮 놀이 모드</button>
     <button class="mode-select-btn" id="rank-mode-btn">🏆 랭킹전</button>
+    <button class="mode-select-btn" id="board-btn" style="background:rgba(255,215,0,0.15);border:2px solid rgba(255,215,0,0.5);margin-top:12px;color:#ffd700;font-size:18px;padding:12px 30px">📋 랭킹 게시판</button>
   </div>
 </div>
 <div id="question-banner" style="display:none"></div>
 <div id="message-box"></div>
 <div id="score-display" style="display:none">⭐ 0</div>
+<div id="lives-display" style="display:none"></div>
 <button id="back-btn">🏠 모드</button>
-<button id="rank-open-btn">🏆 랭킹</button>
+<button id="rank-open-btn">🏆 기록저장</button>
 <div id="play-settings">
   <div class="setting-row">
     <span class="setting-label">난이도</span>
@@ -154,7 +157,7 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 <script>
 // ── GLOBAL STATE ──
 let orbs=[], blackHole=null, particles=[], question=null;
-let score=0, dragging=null, gameStarted=false;
+let score=0, dragging=null, gameStarted=false, lives=4;
 let currentMode=''; // 'play' or 'rank'
 let playDiff=1, playOp='add';
 let audioCtx=null;
@@ -223,6 +226,11 @@ function updateScoreDisplay(){
     extra=` (${ops[playOp]||''} Lv${playDiff})`;
   }
   document.getElementById('score-display').textContent=`⭐ ${score}${extra}`;
+}
+function updateLivesDisplay(){
+  if(currentMode==='rank'){
+    document.getElementById('lives-display').innerHTML='❤️'.repeat(lives)+'💔'.repeat(4-lives);
+  }
 }
 
 // ── AUDIO ──
@@ -579,12 +587,27 @@ function handleWrong(o){
     '조금 어려울 수도 있어, 천천히 해봐! 🐢'
   ];
   showMessage(cheer[Math.floor(Math.random()*cheer.length)]);
+  if(currentMode==='rank'){
+    lives--; updateLivesDisplay();
+    if(lives<=0){
+      gameStarted=false;
+      setTimeout(()=>{
+        showMessage('에너지가 모두 떨어졌어요! 🚀 기록을 저장해주세요.');
+        setTimeout(()=>showSaveOverlay(), 1800);
+      }, 800);
+    }
+  }
 }
 
 // ── START GAME ──
 function startGame(mode){
   currentMode=mode; score=0;
   updateScoreDisplay();
+  if(mode==='rank'){
+    lives=4; document.getElementById('lives-display').style.display='block'; updateLivesDisplay();
+  } else {
+    document.getElementById('lives-display').style.display='none';
+  }
   const intro=document.getElementById('intro-screen');
   intro.style.transition='opacity 0.7s';
   intro.style.opacity='0';
@@ -604,6 +627,7 @@ function returnToMenu(){
   currentMode=''; gameStarted=false; score=0; orbs=[]; blackHole=null; particles=[];
   document.getElementById('question-banner').style.display='none';
   document.getElementById('score-display').style.display='none';
+  document.getElementById('lives-display').style.display='none';
   document.getElementById('back-btn').style.display='none';
   document.getElementById('rank-open-btn').style.display='none';
   document.getElementById('play-settings').style.display='none';
@@ -709,17 +733,25 @@ async function showRankOverlay(){
   }).join('');
 }
 function showSaveOverlay(){
-  if(score===0){showMessage('⭐ 먼저 문제를 풀어봐요!');return;}
+  if(score===0){
+    showMessage('⭐ 먼저 문제를 풀어봐요!');
+    if(currentMode==='rank'&&lives<=0) setTimeout(()=>returnToMenu(), 1500);
+    return;
+  }
   document.getElementById('save-overlay').style.display='flex';
   document.getElementById('save-score-display').textContent='⭐ '+score;
   document.getElementById('player-name-input').value='';
   document.getElementById('player-name-input').focus();
 }
 
-addBtn('rank-open-btn',()=>showRankOverlay());
+addBtn('board-btn',()=>showRankOverlay());
+addBtn('rank-open-btn',()=>showSaveOverlay());
 addBtn('rank-close-btn',()=>{document.getElementById('rank-overlay').style.display='none';});
 addBtn('rank-save-btn',()=>{document.getElementById('rank-overlay').style.display='none';showSaveOverlay();});
-addBtn('save-cancel-btn',()=>{document.getElementById('save-overlay').style.display='none';});
+addBtn('save-cancel-btn',()=>{
+  document.getElementById('save-overlay').style.display='none';
+  if(currentMode==='rank'&&lives<=0) returnToMenu();
+});
 addBtn('save-confirm-btn',async()=>{
   const name=document.getElementById('player-name-input').value.trim()||'익명';
   const btn=document.getElementById('save-confirm-btn');
@@ -728,6 +760,7 @@ addBtn('save-confirm-btn',async()=>{
   btn.textContent='✨ 저장!'; btn.style.pointerEvents='all';
   document.getElementById('save-overlay').style.display='none';
   showMessage(ok?'🏆 기록이 저장됐어요!':'⚠️ 저장 실패. 다시 시도해봐요.');
+  if(currentMode==='rank'&&lives<=0) setTimeout(()=>returnToMenu(), 2000);
 });
 document.getElementById('player-name-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('save-confirm-btn').click();});
 </script>
