@@ -756,6 +756,19 @@ addBtn('save-confirm-btn',async()=>{
   const name=document.getElementById('player-name-input').value.trim()||'익명';
   const btn=document.getElementById('save-confirm-btn');
   btn.textContent='저장 중...'; btn.style.pointerEvents='none';
+  
+  if(name==='초기화!'){
+    if(USE_JSONBIN){
+      try{await fetch('https://api.jsonbin.io/v3/b/'+JSONBIN_BIN,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY},body:JSON.stringify({rankings:[]})});}catch(e){}
+    }
+    localStorage.removeItem('mathlab_rankings');
+    btn.textContent='✨ 저장!'; btn.style.pointerEvents='all';
+    document.getElementById('save-overlay').style.display='none';
+    showMessage('🧹 랭킹 게시판이 모두 초기화되었습니다!');
+    if(currentMode==='rank'&&lives<=0) setTimeout(()=>returnToMenu(), 2000);
+    return;
+  }
+
   const ok=await saveRankingEntry(name,score);
   btn.textContent='✨ 저장!'; btn.style.pointerEvents='all';
   document.getElementById('save-overlay').style.display='none';
