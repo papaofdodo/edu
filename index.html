@@ -683,34 +683,54 @@ document.querySelectorAll('[data-op]').forEach(btn=>{
   },{passive:false}));
 });
 
-// ── RANKINGS ──
-const JSONBIN_KEY='YOUR_MASTER_KEY_HERE';
-const JSONBIN_BIN='YOUR_BIN_ID_HERE';
-const USE_JSONBIN=JSONBIN_KEY!=='YOUR_MASTER_KEY_HERE';
+// ── RANKINGS (온라인 랭킹 공유) ──
+// =========================================================================
+// [중요!] 다른 기기나 친구들과 랭킹을 공유하려면 아래 두 값을 입력해야 합니다.
+// 1. https://jsonbin.io/ 에 가입하고 로그인합니다.
+// 2. 화면 상단의 [ + Create New ] 버튼을 눌러 새 Bin을 만듭니다. 
+//    (입력창에 {"rankings":[]} 라고 적고 Save 버튼 클릭)
+// 3. 생성된 Bin의 URL (예: https://jsonbin.io/app/bins/1234567890abcdef...) 
+//    마지막 부분의 긴 영문/숫자 조합이 BIN ID 입니다. 복사해서 아래 JSONBIN_BIN에 넣으세요.
+// 4. 왼쪽 메뉴의 [ API Keys ] 에서 'Master Key'를 복사하여 아래 JSONBIN_KEY에 넣으세요.
+// =========================================================================
+const JSONBIN_KEY='$2a$10$VMdh1/OfVtbAaJRnF9/7VOapIoP7ZqWi21.WSxMzJPsT77rCLakgy'; // 👈 알려주신 Master Key를 입력해 두었습니다!
+const JSONBIN_BIN='69f719d736566621a81cd275';     // 👈 새로 만든 퍼블릭 BIN ID를 입력해 두었습니다!
+const USE_JSONBIN=JSONBIN_KEY!=='YOUR_MASTER_KEY_HERE' && JSONBIN_BIN!=='YOUR_BIN_ID_HERE';
 
 async function loadRankings(){
   if(USE_JSONBIN){
     try{
       const res=await fetch('https://api.jsonbin.io/v3/b/'+JSONBIN_BIN+'/latest',{headers:{'X-Master-Key':JSONBIN_KEY,'X-Bin-Meta':'false'}});
-      if(!res.ok) throw new Error();
+      if(!res.ok) throw new Error('Network Error');
       const data=await res.json();
       return Array.isArray(data.rankings)?data.rankings:[];
-    }catch(e){}
+    }catch(e){
+      console.warn("온라인 랭킹 로딩 실패, 기기 랭킹을 불러옵니다.", e);
+    }
   }
   try{return JSON.parse(localStorage.getItem('mathlab_rankings')||'[]');}catch(e){return [];}
 }
 async function saveRankingEntry(name,sc){
   const entry={name,score:sc,mode:currentMode==='rank'?'랭킹전':'놀이',date:new Date().toLocaleDateString('ko-KR')};
+  // 1. 최신 랭킹을 서버에서 불러온 뒤
   const rankings=await loadRankings();
+  // 2. 내 점수를 추가하고
   rankings.push(entry); rankings.sort((a,b)=>b.score-a.score);
   const top=rankings.slice(0,20);
+  
+  // 3. 기기에도 저장하고
   localStorage.setItem('mathlab_rankings',JSON.stringify(top));
+  
+  // 4. 서버에도 저장(덮어쓰기)합니다.
   if(USE_JSONBIN){
     try{
       const res=await fetch('https://api.jsonbin.io/v3/b/'+JSONBIN_BIN,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY},body:JSON.stringify({rankings:top})});
-      if(!res.ok) throw new Error();
+      if(!res.ok) throw new Error('Network Error');
       return true;
-    }catch(e){return false;}
+    }catch(e){
+      console.error("온라인 랭킹 저장 실패", e);
+      return false;
+    }
   }
   return true;
 }
