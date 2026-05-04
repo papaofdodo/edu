@@ -14,7 +14,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000}
 canvas{display:block}
 body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 #question-banner{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:rgba(30,10,60,0.85);backdrop-filter:blur(12px);border:3px solid rgba(200,150,255,0.8);border-radius:30px;padding:18px 40px;font-size:clamp(32px,8vw,56px);color:#fff;text-align:center;pointer-events:none;text-shadow:0 0 20px rgba(255,255,255,0.9);box-shadow:0 0 35px rgba(160,100,255,0.7),inset 0 0 15px rgba(160,100,255,0.4);white-space:nowrap;z-index:10;font-weight:bold}
-#message-box{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);font-size:clamp(16px,4.5vw,26px);color:#fff;text-align:center;pointer-events:none;opacity:0;transition:opacity 0.4s;text-shadow:0 0 30px rgba(100,255,200,0.9);white-space:nowrap;z-index:10}
+#message-box{position:fixed;bottom:120px;left:50%;transform:translateX(-50%);font-size:clamp(16px,4.5vw,26px);color:#fff;text-align:center;pointer-events:none;opacity:0;transition:opacity 0.4s;text-shadow:0 0 30px rgba(100,255,200,0.9);white-space:nowrap;z-index:10}
 #score-display{position:fixed;top:15px;right:15px;font-size:18px;color:rgba(255,255,255,0.9);pointer-events:none;z-index:10;text-shadow:0 0 10px rgba(255,215,0,0.5);font-weight:bold}
 /* INTRO */
 #intro-screen{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 40%,#1a0540 0%,#050010 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
@@ -90,7 +90,7 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 <div id="intro-screen">
   <div class="rocket">🚀</div>
   <h1>우주가 어두워졌어요!</h1>
-  <p>나쁜 우주 괴물이 별들을 훔쳐갔어요.<br>마법 숫자를 풀어서<br>✨ <strong>별을 되찾아 우주를 구해요!</strong><br><span style="font-size:0.8em;color:rgba(255,255,255,0.6)">별 15개마다 특별한 일이 일어나요 🌠</span></p>
+  <p>나쁜 우주 괴물이 별들을 훔쳐갔어요.<br>마법 숫자를 풀어서<br>✨ <strong>별을 되찾아 우주를 구해요!</strong><br><span style="font-size:0.8em;color:rgba(255,255,255,0.6)">별 10개마다 특별한 일이 일어나요 🌠</span></p>
   <div class="mode-select-btns">
     <button class="mode-select-btn" id="play-mode-btn">🎮 놀이 모드</button>
     <button class="mode-select-btn" id="rank-mode-btn">🏆 랭킹전</button>
@@ -122,7 +122,7 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 <div id="milestone-overlay">
   <div class="ms-emoji" id="ms-emoji">🚀</div>
   <h2 id="ms-title">우주선이 날아올랐어요!</h2>
-  <p id="ms-desc">별 15개를 모았어요!</p>
+  <p id="ms-desc">별 10개를 모았어요!</p>
   <button id="milestone-continue">계속 하기! 🌟</button>
 </div>
 <div id="rank-overlay">
@@ -150,7 +150,7 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 <div id="ending-overlay">
   <div class="end-emoji">🏅</div>
   <h1>🌟 우주 영웅 탄생! 🌟</h1>
-  <p id="ending-desc">별 400개를 모두 되찾았어요!<br>당신은 진정한 우주 영웅이 되었습니다!<br><br>✨ 하지만 우주의 황금시대를 위해<br>별은 아무리 많아도 부족해요.<br>계속 별을 모아 우주를 더욱 빛내줘요! 💫</p>
+  <p id="ending-desc">별 270개를 모두 되찾았어요!<br>당신은 진정한 우주 영웅이 되었습니다!<br><br>✨ 하지만 우주의 황금시대를 위해<br>별은 아무리 많아도 부족해요.<br>계속 별을 모아 우주를 더욱 빛내줘요! 💫</p>
   <button id="ending-continue">⭐ 계속 별 모으기!</button>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
@@ -165,38 +165,24 @@ const PENTA=[523.25,587.33,659.25,783.99,880.00,1046.50,1174.66,1318.51];
 
 // ── RANK MODE: auto difficulty ──
 function getRankDiffConfig(s) {
-  // Stars 1-50: addition only, maxA/B scale slightly
-  // Stars 51-200: gradually more subtraction
-  // Stars 200+: fully random, harder numbers
-  let maxA,maxB;
-  if(s<=50){maxA=Math.min(3+Math.floor(s/10),8);maxB=Math.min(3+Math.floor(s/10),8);}
-  else if(s<=100){maxA=Math.min(5+Math.floor((s-50)/10),12);maxB=Math.min(5+Math.floor((s-50)/10),12);}
-  else if(s<=200){maxA=Math.min(8+Math.floor((s-100)/25),18);maxB=Math.min(8+Math.floor((s-100)/25),18);}
-  else{maxA=Math.min(12+Math.floor((s-200)/40),25);maxB=Math.min(12+Math.floor((s-200)/40),25);}
-  return {maxA,maxB};
+  let maxVal;
+  if(s<=40){maxVal=8;}
+  else if(s<=60){maxVal=10;}
+  else{maxVal=10+Math.floor((s-41)/20)*2;}
+  return {maxVal};
 }
 function getRankOpType(s) {
   if(s<=50) return 'add';
-  if(s<=100){
-    // 10% sub chance at 51, increasing to 40% at 100
-    const pSub=(s-50)/50*0.4;
-    return Math.random()<pSub?'sub':'add';
-  }
-  if(s<=200){
-    // 40% to 50% sub
-    const pSub=0.4+(s-100)/100*0.1;
-    return Math.random()<pSub?'sub':'add';
-  }
   return Math.random()<0.5?'add':'sub';
 }
 // ── PLAY MODE: manual difficulty ──
 const PLAY_DIFF_CFG=[,{maxA:3,maxB:3},{maxA:5,maxB:5},{maxA:8,maxB:8},{maxA:12,maxB:12},{maxA:18,maxB:18}];
 
 function generateQuestion() {
-  let maxA,maxB,opType;
+  let maxA,maxB,maxVal,opType;
   if(currentMode==='rank'){
     const cfg=getRankDiffConfig(score);
-    maxA=cfg.maxA; maxB=cfg.maxB;
+    maxVal=cfg.maxVal;
     opType=getRankOpType(score);
   } else {
     const cfg=PLAY_DIFF_CFG[playDiff];
@@ -204,13 +190,27 @@ function generateQuestion() {
     opType=playOp==='both'?(Math.random()<0.5?'add':'sub'):playOp;
   }
   if(opType==='add'){
-    const a=Math.floor(Math.random()*maxA)+1;
-    const b=Math.floor(Math.random()*maxB)+1;
-    return {ans:a+b,text:`${a} + ${b} = ?`,type:'add'};
+    if(currentMode==='rank'){
+      const total=Math.floor(Math.random()*(maxVal-1))+2;
+      const a=Math.floor(Math.random()*(total-1))+1;
+      const b=total-a;
+      return {ans:total,text:`${a} + ${b} = ?`,type:'add'};
+    } else {
+      const a=Math.floor(Math.random()*maxA)+1;
+      const b=Math.floor(Math.random()*maxB)+1;
+      return {ans:a+b,text:`${a} + ${b} = ?`,type:'add'};
+    }
   } else {
-    const sub=Math.floor(Math.random()*maxB)+1;
-    const ans=Math.floor(Math.random()*maxA)+1;
-    return {ans,text:`${ans+sub} − ${sub} = ?`,type:'sub'};
+    if(currentMode==='rank'){
+      const total=Math.floor(Math.random()*(maxVal-1))+2;
+      const sub=Math.floor(Math.random()*(total-1))+1;
+      const ans=total-sub;
+      return {ans,text:`${total} − ${sub} = ?`,type:'sub'};
+    } else {
+      const sub=Math.floor(Math.random()*maxB)+1;
+      const ans=Math.floor(Math.random()*maxA)+1;
+      return {ans,text:`${ans+sub} − ${sub} = ?`,type:'sub'};
+    }
   }
 }
 
@@ -218,8 +218,6 @@ function updateScoreDisplay(){
   let extra='';
   if(currentMode==='rank'){
     if(score<=50) extra=' (덧셈)';
-    else if(score<=100) extra=' (덧셈↑)';
-    else if(score<=200) extra=' (혼합)';
     else extra=' (랜덤)';
   } else {
     const ops={add:'덧셈',sub:'뺄셈',both:'랜덤'};
@@ -234,9 +232,8 @@ function updateLivesDisplay(){
 }
 
 // ── AUDIO ──
-let bgmInterval=null, bgmStep=0;
-const BGM=[{i:0,v:0.12},{i:2,v:0.08},{i:4,v:0.12},{i:2,v:0.08},{i:5,v:0.10},{i:4,v:0.08},
-  {i:2,v:0.12},{i:0,v:0.08},{i:4,v:0.14},{i:2,v:0.08},{i:5,v:0.10},{i:7,v:0.14}];
+const bgm1 = new Audio('bgm1.mp3'); bgm1.loop = true;
+const bgm2 = new Audio('bgm2.mp3'); bgm2.loop = true;
 
 function getAudio(){
   if(!audioCtx){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}
@@ -254,57 +251,58 @@ function playTone(freq,vol=0.3,dur=0.18,type='sine'){
 function playPentatonicRise(step){playTone(PENTA[Math.min(step%8,PENTA.length-1)],0.22,0.15,'triangle');}
 function playSuccessFanfare(){[0,2,4,5,7].forEach((i,idx)=>setTimeout(()=>playTone(PENTA[i],0.32,0.22,'triangle'),idx*100));}
 function playBounceTone(){playTone(200,0.18,0.12,'sawtooth');setTimeout(()=>playTone(180,0.13,0.1,'sawtooth'),80);}
+
+function updateBGM() {
+  if (!gameStarted) {
+    bgm1.pause(); bgm2.pause();
+    return;
+  }
+  const useBgm1 = Math.floor(score / 25) % 2 === 0;
+  const target = useBgm1 ? bgm1 : bgm2;
+  const other = useBgm1 ? bgm2 : bgm1;
+  other.pause();
+  if (target.paused) target.play().catch(e=>console.log('BGM play prevented', e));
+}
 function startBGM(){
-  if(bgmInterval) return;
-  bgmInterval=setInterval(()=>{
-    const ac=getAudio(); if(!ac) return;
-    const {i,v}=BGM[bgmStep%BGM.length];
-    const osc=ac.createOscillator(), gain=ac.createGain();
-    osc.connect(gain); gain.connect(ac.destination);
-    osc.type='triangle'; osc.frequency.value=PENTA[i];
-    gain.gain.setValueAtTime(v*0.4,ac.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.22);
-    osc.start(); osc.stop(ac.currentTime+0.25);
-    bgmStep++;
-  },200);
+  updateBGM();
 }
 function vibrate(p){if(navigator.vibrate)navigator.vibrate(p);}
 
 // ── MILESTONES (every 15 stars, up to 400) ──
 const MILESTONES=[
-  {at:15,emoji:'🚀',title:'우주선이 날아올랐어요!',desc:'별 15개! 드디어 우주선이 출발했어요! 달을 향해 날아가요!'},
-  {at:30,emoji:'🌙',title:'달에 도착했어요!',desc:'별 30개! 달 토끼가 박수를 치고 있어요! 다음은 화성이에요!'},
-  {at:45,emoji:'🔴',title:'화성에 착륙했어요!',desc:'별 45개! 붉은 화성에 발자국을 남겼어요! 진정한 탐험가!'},
-  {at:60,emoji:'☄️',title:'소행성대를 통과했어요!',desc:'별 60개! 수천 개의 소행성 사이를 아슬아슬하게 통과했어요!'},
-  {at:75,emoji:'🪐',title:'목성을 만났어요!',desc:'별 75개! 태양계에서 가장 큰 행성, 목성에 도착했어요!'},
-  {at:90,emoji:'💫',title:'토성 고리를 발견했어요!',desc:'별 90개! 아름다운 토성의 고리를 직접 보았어요! 정말 신비로워요!'},
-  {at:105,emoji:'🌊',title:'천왕성을 탐험해요!',desc:'별 105개! 옆으로 누워 도는 신기한 행성 천왕성 발견!'},
-  {at:120,emoji:'🔵',title:'해왕성의 폭풍 속으로!',desc:'별 120개! 태양계 끝의 행성, 해왕성의 거대한 폭풍 속으로!'},
-  {at:135,emoji:'❄️',title:'태양계 끝에 도달했어요!',desc:'별 135개! 명왕성을 지나 태양계의 끝 오르트 구름에 도달!'},
-  {at:150,emoji:'🌌',title:'별과 별 사이의 공간!',desc:'별 150개! 어떤 별에도 속하지 않는 성간 공간에 진입했어요!'},
-  {at:165,emoji:'⭐',title:'알파 센타우리에 도착!',desc:'별 165개! 지구에서 가장 가까운 별, 알파 센타우리에 도착!'},
-  {at:180,emoji:'🎆',title:'성운 속을 날아요!',desc:'별 180개! 아름다운 색의 성운 속을 비행하고 있어요!'},
-  {at:195,emoji:'✨',title:'별 무리를 만났어요!',desc:'별 195개! 수백만 개의 별이 모인 성단을 발견했어요!'},
-  {at:210,emoji:'🌀',title:'은하 나선팔에 진입!',desc:'별 210개! 우리 은하의 아름다운 나선팔을 여행 중이에요!'},
-  {at:225,emoji:'🌠',title:'은하 중심으로!',desc:'별 225개! 우리 은하의 중심부를 향해 날아가고 있어요!'},
-  {at:240,emoji:'🕳️',title:'블랙홀을 발견했어요!',desc:'별 240개! 거대한 블랙홀 주변을 안전하게 비행했어요!'},
-  {at:255,emoji:'🚀',title:'은하 사이의 공간!',desc:'별 255개! 우리 은하를 벗어나 은하 사이의 광활한 공간으로!'},
-  {at:270,emoji:'🌌',title:'안드로메다 은하 도착!',desc:'별 270개! 250만 광년 거리의 안드로메다 은하에 도착했어요!'},
-  {at:285,emoji:'💎',title:'은하단을 여행해요!',desc:'별 285개! 수천 개의 은하가 모인 거대한 은하단이에요!'},
-  {at:300,emoji:'🏆',title:'초은하단 정복!',desc:'별 300개! 수십만 개의 은하가 모인 초은하단을 넘어섰어요! 진정한 우주 마스터!'},
-  {at:315,emoji:'🕸️',title:'우주 거대 구조물!',desc:'별 315개! 거미줄처럼 얽힌 우주의 거대 구조물을 발견했어요!'},
-  {at:330,emoji:'🔭',title:'관측 가능한 우주의 끝!',desc:'별 330개! 빛이 닿는 우주의 끝에 도달했어요! 믿을 수가 없어요!'},
-  {at:345,emoji:'🌈',title:'다른 우주의 문을 발견!',desc:'별 345개! 다른 우주로 이어지는 신비로운 문을 발견했어요!'},
-  {at:360,emoji:'💫',title:'평행 우주를 여행해요!',desc:'별 360개! 우리와 다른 법칙의 평행 우주를 여행하고 있어요!'},
-  {at:375,emoji:'🌟',title:'우주 탄생의 비밀!',desc:'별 375개! 빅뱅의 순간으로 돌아가 우주 탄생의 비밀을 보았어요!'},
-  {at:390,emoji:'👑',title:'시간과 공간의 마스터!',desc:'별 390개! 시간과 공간을 자유롭게 다루는 능력을 얻었어요!'},
-  {at:400,emoji:'🏅',title:'우주 영웅 탄생!',desc:'별 400개 달성! 진정한 우주 영웅이 되었어요!'}
+  {at:10,emoji:'🚀',title:'우주선이 날아올랐어요!',desc:'별 10개! 드디어 우주선이 출발했어요! 달을 향해 날아가요!'},
+  {at:20,emoji:'🌙',title:'달에 도착했어요!',desc:'별 20개! 달 토끼가 박수를 치고 있어요! 다음은 화성이에요!'},
+  {at:30,emoji:'🔴',title:'화성에 착륙했어요!',desc:'별 30개! 붉은 화성에 발자국을 남겼어요! 진정한 탐험가!'},
+  {at:40,emoji:'☄️',title:'소행성대를 통과했어요!',desc:'별 40개! 수천 개의 소행성 사이를 아슬아슬하게 통과했어요!'},
+  {at:50,emoji:'🪐',title:'목성을 만났어요!',desc:'별 50개! 태양계에서 가장 큰 행성, 목성에 도착했어요!'},
+  {at:60,emoji:'💫',title:'토성 고리를 발견했어요!',desc:'별 60개! 아름다운 토성의 고리를 직접 보았어요! 정말 신비로워요!'},
+  {at:70,emoji:'🌊',title:'천왕성을 탐험해요!',desc:'별 70개! 옆으로 누워 도는 신기한 행성 천왕성 발견!'},
+  {at:80,emoji:'🔵',title:'해왕성의 폭풍 속으로!',desc:'별 80개! 태양계 끝의 행성, 해왕성의 거대한 폭풍 속으로!'},
+  {at:90,emoji:'❄️',title:'태양계 끝에 도달했어요!',desc:'별 90개! 명왕성을 지나 태양계의 끝 오르트 구름에 도달!'},
+  {at:100,emoji:'🌌',title:'별과 별 사이의 공간!',desc:'별 100개! 어떤 별에도 속하지 않는 성간 공간에 진입했어요!'},
+  {at:110,emoji:'⭐',title:'알파 센타우리에 도착!',desc:'별 110개! 지구에서 가장 가까운 별, 알파 센타우리에 도착!'},
+  {at:120,emoji:'🎆',title:'성운 속을 날아요!',desc:'별 120개! 아름다운 색의 성운 속을 비행하고 있어요!'},
+  {at:130,emoji:'✨',title:'별 무리를 만났어요!',desc:'별 130개! 수백만 개의 별이 모인 성단을 발견했어요!'},
+  {at:140,emoji:'🌀',title:'은하 나선팔에 진입!',desc:'별 140개! 우리 은하의 아름다운 나선팔을 여행 중이에요!'},
+  {at:150,emoji:'🌠',title:'은하 중심으로!',desc:'별 150개! 우리 은하의 중심부를 향해 날아가고 있어요!'},
+  {at:160,emoji:'🕳️',title:'블랙홀을 발견했어요!',desc:'별 160개! 거대한 블랙홀 주변을 안전하게 비행했어요!'},
+  {at:170,emoji:'🚀',title:'은하 사이의 공간!',desc:'별 170개! 우리 은하를 벗어나 은하 사이의 광활한 공간으로!'},
+  {at:180,emoji:'🌌',title:'안드로메다 은하 도착!',desc:'별 180개! 250만 광년 거리의 안드로메다 은하에 도착했어요!'},
+  {at:190,emoji:'💎',title:'은하단을 여행해요!',desc:'별 190개! 수천 개의 은하가 모인 거대한 은하단이에요!'},
+  {at:200,emoji:'🏆',title:'초은하단 정복!',desc:'별 200개! 수십만 개의 은하가 모인 초은하단을 넘어섰어요! 진정한 우주 마스터!'},
+  {at:210,emoji:'🕸️',title:'우주 거대 구조물!',desc:'별 210개! 거미줄처럼 얽힌 우주의 거대 구조물을 발견했어요!'},
+  {at:220,emoji:'🔭',title:'관측 가능한 우주의 끝!',desc:'별 220개! 빛이 닿는 우주의 끝에 도달했어요! 믿을 수가 없어요!'},
+  {at:230,emoji:'🌈',title:'다른 우주의 문을 발견!',desc:'별 230개! 다른 우주로 이어지는 신비로운 문을 발견했어요!'},
+  {at:240,emoji:'💫',title:'평행 우주를 여행해요!',desc:'별 240개! 우리와 다른 법칙의 평행 우주를 여행하고 있어요!'},
+  {at:250,emoji:'🌟',title:'우주 탄생의 비밀!',desc:'별 250개! 빅뱅의 순간으로 돌아가 우주 탄생의 비밀을 보았어요!'},
+  {at:260,emoji:'👑',title:'시간과 공간의 마스터!',desc:'별 260개! 시간과 공간을 자유롭게 다루는 능력을 얻었어요!'},
+  {at:270,emoji:'🏅',title:'우주 영웅 탄생!',desc:'별 270개 달성! 진정한 우주 영웅이 되었어요!'}
 ];
 
 function checkMilestone(s) {
   const m=MILESTONES.find(x=>x.at===s);
   if(!m) return false;
-  if(s===400){
+  if(s===270){
     // Show special ending
     const ov=document.getElementById('ending-overlay');
     ov.style.display='flex';
@@ -343,7 +341,7 @@ class Orb {
     }
     if(this.x-this.r<0){this.x=this.r;this.vx=Math.abs(this.vx);this.bounceVx=Math.abs(this.bounceVx);}
     if(this.x+this.r>W){this.x=W-this.r;this.vx=-Math.abs(this.vx);this.bounceVx=-Math.abs(this.bounceVx);}
-    if(this.y-this.r<0){this.y=this.r;this.vy=Math.abs(this.vy);this.bounceVy=Math.abs(this.bounceVy);}
+    if(this.y-this.r<170){this.y=this.r+170;this.vy=Math.abs(this.vy);this.bounceVy=Math.abs(this.bounceVy);}
     if(this.y+this.r>H){this.y=H-this.r;this.vy=-Math.abs(this.vy);this.bounceVy=-Math.abs(this.bounceVy);}
     this.wobble+=this.wobbleSpeed; this.glowPhase+=0.03;
     this.scale+=(this.targetScale-this.scale)*0.12;
@@ -447,7 +445,7 @@ function setupLevel(p){
   for(let i=all.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[all[i],all[j]]=[all[j],all[i]];}
   all.forEach((n,i)=>{
     let x,y, attempts=0;
-    do{x=80+Math.random()*(W-160);y=120+Math.random()*(H-240);attempts++;}while(Math.hypot(x-W/2,y-H/2)<140 && attempts<50);
+    do{x=80+Math.random()*(W-160);y=220+Math.random()*Math.max(10,H-300);attempts++;}while(Math.hypot(x-W/2,y-H/2)<140 && attempts<50);
     orbs.push(new Orb(n,x,y,n===question.ans));
   });
   blackHole=new BlackHole(W/2,H/2);
@@ -537,6 +535,7 @@ new p5(function(p){
 function handleCorrect(o,p,setSlowMo){
   score++;
   updateScoreDisplay();
+  updateBGM();
   if(blackHole) blackHole.accepting=true;
   orbs=orbs.filter(x=>x!==o);
   if(setSlowMo) setSlowMo();
@@ -625,6 +624,7 @@ function startGame(mode){
 
 function returnToMenu(){
   currentMode=''; gameStarted=false; score=0; orbs=[]; blackHole=null; particles=[];
+  updateBGM();
   document.getElementById('question-banner').style.display='none';
   document.getElementById('score-display').style.display='none';
   document.getElementById('lives-display').style.display='none';
