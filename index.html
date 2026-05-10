@@ -104,19 +104,22 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 <button id="back-btn">🏠 모드</button>
 <button id="rank-open-btn">🏆 기록저장</button>
 <div id="play-settings">
-  <div class="setting-row">
-    <span class="setting-label">난이도</span>
-    <button class="setting-btn active" data-diff="1" id="d1">1</button>
-    <button class="setting-btn" data-diff="2" id="d2">2</button>
-    <button class="setting-btn" data-diff="3" id="d3">3</button>
-    <button class="setting-btn" data-diff="4" id="d4">4</button>
-    <button class="setting-btn" data-diff="5" id="d5">5</button>
-  </div>
-  <div class="setting-row">
-    <span class="setting-label">종류</span>
-    <button class="setting-btn active" data-op="add" id="op-add">덧셈</button>
-    <button class="setting-btn" data-op="sub" id="op-sub">뺄셈</button>
-    <button class="setting-btn" data-op="both" id="op-both">랜덤</button>
+  <button id="settings-toggle-btn" class="setting-btn" style="width:fit-content; background:rgba(255,255,255,0.15); box-shadow:0 0 10px rgba(0,0,0,0.5); font-size:14px; padding:8px 16px;">⚙️ 설정</button>
+  <div id="settings-panel" style="display:none; flex-direction:column; gap:8px; margin-top:8px; background:rgba(0,0,0,0.6); padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(8px);">
+    <div class="setting-row">
+      <span class="setting-label">난이도</span>
+      <button class="setting-btn active" data-diff="1" id="d1">1</button>
+      <button class="setting-btn" data-diff="2" id="d2">2</button>
+      <button class="setting-btn" data-diff="3" id="d3">3</button>
+      <button class="setting-btn" data-diff="4" id="d4">4</button>
+      <button class="setting-btn" data-diff="5" id="d5">5</button>
+    </div>
+    <div class="setting-row">
+      <span class="setting-label">종류</span>
+      <button class="setting-btn active" data-op="add" id="op-add">덧셈</button>
+      <button class="setting-btn" data-op="sub" id="op-sub">뺄셈</button>
+      <button class="setting-btn" data-op="both" id="op-both">랜덤</button>
+    </div>
   </div>
 </div>
 <div id="milestone-overlay">
@@ -232,8 +235,19 @@ function updateLivesDisplay(){
 }
 
 // ── AUDIO ──
-const bgm1 = new Audio('bgm1.mp3'); bgm1.loop = true;
-const bgm2 = new Audio('bgm2.mp3'); bgm2.loop = true;
+const bgms = [];
+let currentBgmIndex = 0;
+for(let i=1; i<=6; i++) {
+  const audio = new Audio(`bgm${i}.mp3`);
+  audio.addEventListener('ended', () => {
+    currentBgmIndex = (currentBgmIndex + 1) % bgms.length;
+    bgms[currentBgmIndex].currentTime = 0;
+    if (gameStarted) {
+      bgms[currentBgmIndex].play().catch(e=>console.log('BGM play prevented', e));
+    }
+  });
+  bgms.push(audio);
+}
 
 function getAudio(){
   if(!audioCtx){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}
@@ -254,13 +268,10 @@ function playBounceTone(){playTone(200,0.18,0.12,'sawtooth');setTimeout(()=>play
 
 function updateBGM() {
   if (!gameStarted) {
-    bgm1.pause(); bgm2.pause();
+    bgms.forEach(bgm => bgm.pause());
     return;
   }
-  const useBgm1 = Math.floor(score / 25) % 2 === 0;
-  const target = useBgm1 ? bgm1 : bgm2;
-  const other = useBgm1 ? bgm2 : bgm1;
-  other.pause();
+  const target = bgms[currentBgmIndex];
   if (target.paused) target.play().catch(e=>console.log('BGM play prevented', e));
 }
 function startBGM(){
@@ -661,6 +672,15 @@ addBtn('milestone-continue',()=>{
 addBtn('ending-continue',()=>{
   document.getElementById('ending-overlay').style.display='none';
   if(window._setupLevel) window._setupLevel();
+});
+
+addBtn('settings-toggle-btn', () => {
+  const panel = document.getElementById('settings-panel');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'flex';
+  } else {
+    panel.style.display = 'none';
+  }
 });
 
 // ── PLAY SETTINGS BUTTONS ──
