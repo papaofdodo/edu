@@ -2,14 +2,15 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="description" content="우주 수학 탐험 - 별을 모아 우주 영웅이 되어요!">
 <meta name="theme-color" content="#7c3aed">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>🚀 우주 수학 탐험</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;touch-action:none}
+*{margin:0;padding:0;box-sizing:border-box;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+html,body{touch-action:none;overscroll-behavior:none;-ms-touch-action:none}
 html,body{width:100%;height:100%;overflow:hidden;background:#000}
 canvas{display:block}
 body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
@@ -237,16 +238,64 @@ function updateLivesDisplay(){
 // ── AUDIO ──
 const bgms = [];
 let currentBgmIndex = 0;
-for(let i=1; i<=6; i++) {
-  const audio = new Audio(`bgm${i}.mp3`);
+let useSynthBGM = false;      // mp3 로딩 실패 시 true
+let synthBGMNode = null;       // 합성 BGM 노드
+let synthBGMGain = null;
+
+// mp3 로딩 실패 감지
+let bgmLoadFails = 0;
+const BGM_TOTAL = 6;
+for(let i=1; i<=BGM_TOTAL; i++) {
+  const audio = new Audio();
+  audio.addEventListener('error', () => {
+    bgmLoadFails++;
+    if (bgmLoadFails >= BGM_TOTAL) {
+      useSynthBGM = true;
+      console.log('모든 BGM mp3 로딩 실패 - 합성 배경음으로 전환합니다.');
+      if (gameStarted) startSynthBGM();
+    }
+  });
   audio.addEventListener('ended', () => {
     currentBgmIndex = (currentBgmIndex + 1) % bgms.length;
     bgms[currentBgmIndex].currentTime = 0;
-    if (gameStarted) {
+    if (gameStarted && !useSynthBGM) {
       bgms[currentBgmIndex].play().catch(e=>console.log('BGM play prevented', e));
     }
   });
+  audio.src = `bgm${i}.mp3`;
   bgms.push(audio);
+}
+
+// 합성 배경음: 간단한 분위기 있는 앰비언트 드론
+function startSynthBGM() {
+  const ac = getAudio(); if (!ac) return;
+  stopSynthBGM();
+  synthBGMGain = ac.createGain();
+  synthBGMGain.gain.setValueAtTime(0.001, ac.currentTime);
+  synthBGMGain.gain.linearRampToValueAtTime(0.08, ac.currentTime + 2);
+  synthBGMGain.connect(ac.destination);
+  const freqs = [130.81, 164.81, 196.00, 246.94]; // C3 E3 G3 B3
+  synthBGMNode = freqs.map(f => {
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.25;
+    o.connect(g); g.connect(synthBGMGain);
+    o.start();
+    // 느린 LFO로 움직임 추가
+    const lfo = ac.createOscillator();
+    const lfoGain = ac.createGain();
+    lfo.frequency.value = 0.1 + Math.random() * 0.2;
+    lfoGain.gain.value = f * 0.003;
+    lfo.connect(lfoGain); lfoGain.connect(o.frequency);
+    lfo.start();
+    return o;
+  });
+}
+function stopSynthBGM() {
+  try { if (synthBGMGain) { synthBGMGain.gain.linearRampToValueAtTime(0.001, getAudio().currentTime + 0.5); setTimeout(()=>{try{if(synthBGMNode) synthBGMNode.forEach(o=>o.stop());}catch(e){}}, 600); } } catch(e){}
+  synthBGMNode = null; synthBGMGain = null;
 }
 
 function getAudio(){
@@ -268,11 +317,21 @@ function playBounceTone(){playTone(200,0.18,0.12,'sawtooth');setTimeout(()=>play
 
 function updateBGM() {
   if (!gameStarted) {
-    bgms.forEach(bgm => bgm.pause());
+    if (useSynthBGM) stopSynthBGM();
+    else bgms.forEach(bgm => bgm.pause());
+    return;
+  }
+  if (useSynthBGM) {
+    if (!synthBGMGain) startSynthBGM();
     return;
   }
   const target = bgms[currentBgmIndex];
-  if (target.paused) target.play().catch(e=>console.log('BGM play prevented', e));
+  if (target.paused) target.play().catch(e=>{
+    console.log('BGM play prevented', e);
+    // 재생 실패 시 합성 음악으로 전환
+    useSynthBGM = true;
+    startSynthBGM();
+  });
 }
 function startBGM(){
   updateBGM();
@@ -472,6 +531,7 @@ function showMessage(text){
   msgTimer=setTimeout(()=>{el.style.opacity='0';},2200);
 }
 function burst(x,y,count,success){for(let i=0;i<count;i++) particles.push(new Particle(x,y,success));}
+
 // ── P5 SKETCH ──
 new p5(function(p){
   window._p5=p;
@@ -482,10 +542,33 @@ new p5(function(p){
     cnv.parent(document.body);
     p.textFont('Arial'); p.frameRate(60);
     for(let i=0;i<120;i++) bgStars.push({x:Math.random()*p.width,y:Math.random()*p.height,r:Math.random()*2.5+0.5,phase:Math.random()*Math.PI*2,spd:0.02+Math.random()*0.03});
-    const el=cnv.elt; el.style.touchAction='none';
-    el.addEventListener('touchstart',e=>{e.preventDefault();getAudio();if(e.touches.length>0)onPress(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
-    el.addEventListener('touchmove',e=>{e.preventDefault();if(e.touches.length>0)onMove(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
-    el.addEventListener('touchend',e=>{e.preventDefault();onRelease();},{passive:false});
+    const el=cnv.elt;
+    el.style.touchAction='none';
+    el.style.userSelect='none';
+    el.style.webkitUserSelect='none';
+    // Pointer Events로 통일 (mouse/touch/pen/iPad 모두 즉각 처리)
+    el.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      el.setPointerCapture(e.pointerId);
+      getAudio();
+      onPress(e.clientX,e.clientY);
+    },{passive:false});
+    el.addEventListener('pointermove',e=>{
+      e.preventDefault();
+      if(e.buttons>0||e.pressure>0) onMove(e.clientX,e.clientY);
+    },{passive:false});
+    el.addEventListener('pointerup',e=>{
+      e.preventDefault();
+      onRelease();
+    },{passive:false});
+    el.addEventListener('pointercancel',e=>{
+      e.preventDefault();
+      onRelease();
+    },{passive:false});
+    // 핀치줌/제스처 차단 (iPad Safari)
+    el.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
+    el.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
+    el.addEventListener('gestureend',e=>e.preventDefault(),{passive:false});
   };
 
   p.windowResized=function(){
@@ -534,9 +617,10 @@ new p5(function(p){
     }
   }
 
-  p.mousePressed=function(){if(!dragging){getAudio();onPress(p.mouseX,p.mouseY);}};
-  p.mouseDragged=function(){onMove(p.mouseX,p.mouseY);};
-  p.mouseReleased=function(){onRelease();};
+  // 마우스는 포인터 이벤트로 처리되므로 p5 기본 마우스 이벤트 비활성화
+  p.mousePressed=function(){return false;};
+  p.mouseDragged=function(){return false;};
+  p.mouseReleased=function(){return false;};
 
   window._burstCenter=function(count,success){if(gameStarted) burst(p.width/2,p.height/2,count,success);};
   window._setupLevel=function(){if(gameStarted) setupLevel(p);};
@@ -649,16 +733,24 @@ function returnToMenu(){
   setTimeout(()=>{intro.style.transition='opacity 0.6s';intro.style.opacity='1';},50);
 }
 
-// ── BUTTON HELPERS ──
+// ── BUTTON HELPERS (Pointer Events로 통일 - 패드 즉각 반응) ──
 function addBtn(id,fn){
   const el=document.getElementById(id); if(!el) return;
-  el.addEventListener('click',fn);
-  el.addEventListener('touchend',e=>{e.preventDefault();fn(e);},{passive:false});
+  el.style.touchAction='manipulation';
+  el.addEventListener('pointerdown',e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    fn(e);
+  },{passive:false});
 }
 function addBtns(sel,fn){
   document.querySelectorAll(sel).forEach(el=>{
-    el.addEventListener('click',fn);
-    el.addEventListener('touchend',e=>{e.preventDefault();fn(e);},{passive:false});
+    el.style.touchAction='manipulation';
+    el.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      fn(e);
+    },{passive:false});
   });
 }
 
@@ -683,25 +775,35 @@ addBtn('settings-toggle-btn', () => {
   }
 });
 
-// ── PLAY SETTINGS BUTTONS ──
+// ── PLAY SETTINGS BUTTONS (pointerdown으로 교체) ──
 document.querySelectorAll('[data-diff]').forEach(btn=>{
-  ['click','touchend'].forEach(ev=>btn.addEventListener(ev,e=>{
-    e.preventDefault();
+  btn.style.touchAction='manipulation';
+  btn.addEventListener('pointerdown',e=>{
+    e.preventDefault(); e.stopPropagation();
     playDiff=parseInt(btn.dataset.diff);
     document.querySelectorAll('[data-diff]').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     if(window._setupLevel) window._setupLevel();
-  },{passive:false}));
+  },{passive:false});
 });
 document.querySelectorAll('[data-op]').forEach(btn=>{
-  ['click','touchend'].forEach(ev=>btn.addEventListener(ev,e=>{
-    e.preventDefault();
+  btn.style.touchAction='manipulation';
+  btn.addEventListener('pointerdown',e=>{
+    e.preventDefault(); e.stopPropagation();
     playOp=btn.dataset.op;
     document.querySelectorAll('[data-op]').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     if(window._setupLevel) window._setupLevel();
-  },{passive:false}));
+  },{passive:false});
 });
+
+// 전역 핀치줌/제스처 차단 (iPad Safari)
+document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
+document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
+document.addEventListener('gestureend',e=>e.preventDefault(),{passive:false});
+// 두 손가락 터치 차단
+document.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
+document.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
 
 // ── RANKINGS (온라인 랭킹 공유) ──
 // =========================================================================
