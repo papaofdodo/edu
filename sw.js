@@ -28,6 +28,11 @@ self.addEventListener('activate', e => {
 
 // 요청 가로채기: 캐시 우선 전략
 self.addEventListener('fetch', e => {
+  // 오디오(.mp3) 파일은 iOS Safari의 Range Request 호환성을 위해 서비스 워커에서 가로채지 않고 직접 네트워크로 요청하게 합니다.
+  if (e.request.url.endsWith('.mp3') || e.request.url.includes('bgm')) {
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
