@@ -236,66 +236,165 @@ function updateLivesDisplay(){
 }
 
 // ── AUDIO ──
-const bgms = [];
-let currentBgmIndex = 0;
-let useSynthBGM = false;      // mp3 로딩 실패 시 true
-let synthBGMNode = null;       // 합성 BGM 노드
-let synthBGMGain = null;
+const bgmAudio = new Audio();
+bgmAudio.loop = false;
 
-// mp3 로딩 실패 감지
+let currentBgmIndex = 1;      // 1 ~ 6
+let useSynthBGM = false;      // mp3 로딩 실패 시 true
+let synthIntervalId = null;   // 합성 BGM 타이머 ID
+let synthBGMGain = null;      // 합성 BGM 메인 게인 노드
 let bgmLoadFails = 0;
 const BGM_TOTAL = 6;
-for(let i=1; i<=BGM_TOTAL; i++) {
-  const audio = new Audio();
-  audio.addEventListener('error', () => {
-    bgmLoadFails++;
-    if (bgmLoadFails >= BGM_TOTAL) {
-      useSynthBGM = true;
-      console.log('모든 BGM mp3 로딩 실패 - 합성 배경음으로 전환합니다.');
-      if (gameStarted) startSynthBGM();
-    }
+let isAudioUnlocked = false;  // 사용자 터치를 통해 오디오가 해제되었는지 여부
+
+// 단일 오디오 객체에 이벤트 리스너 설정
+bgmAudio.addEventListener('ended', () => {
+  if (gameStarted && !useSynthBGM) {
+    currentBgmIndex = (currentBgmIndex % BGM_TOTAL) + 1; // 1 -> 2 -> ... -> 6 -> 1
+    playNextBGM();
+  }
+});
+
+bgmAudio.addEventListener('error', (e) => {
+  console.warn(`bgm${currentBgmIndex}.mp3 로드 실패:`, e);
+  bgmLoadFails++;
+  if (bgmLoadFails >= BGM_TOTAL) {
+    useSynthBGM = true;
+    console.log('모든 BGM mp3 재생 불가 - 맑고 경쾌한 우주 오르골 배경음으로 전환합니다.');
+    if (gameStarted) startSynthBGM();
+  } else {
+    // 다음 곡 시도
+    currentBgmIndex = (currentBgmIndex % BGM_TOTAL) + 1;
+    if (gameStarted) playNextBGM();
+  }
+});
+
+// 초기화 시 첫 번째 곡 소스 지정
+bgmAudio.src = `bgm${currentBgmIndex}.mp3`;
+
+function playNextBGM() {
+  if (!gameStarted || useSynthBGM) return;
+  bgmAudio.src = `bgm${currentBgmIndex}.mp3`;
+  bgmAudio.load();
+  bgmAudio.play().catch(e => {
+    console.log('BGM 재생 대기 (터치 입력 시 자동 활성화):', e.message);
   });
-  audio.addEventListener('ended', () => {
-    currentBgmIndex = (currentBgmIndex + 1) % bgms.length;
-    bgms[currentBgmIndex].currentTime = 0;
-    if (gameStarted && !useSynthBGM) {
-      bgms[currentBgmIndex].play().catch(e=>console.log('BGM play prevented', e));
-    }
-  });
-  audio.src = `bgm${i}.mp3`;
-  bgms.push(audio);
 }
 
-// 합성 배경음: 간단한 분위기 있는 앰비언트 드론
+// 모바일/태블릿 통합 오디오 잠금 해제 (터치 시 호출)
+function unlockAudio() {
+  // 1. Web Audio API 잠금 해제
+  const ac = getAudio();
+  if (ac && ac.state === 'suspended') {
+    ac.resume().catch(e => console.log('AudioContext 활성화 실패:', e));
+  }
+  
+  // 2. HTML5 Audio (BGM) 잠금 해제
+  if (!isAudioUnlocked) {
+    bgmAudio.play().then(() => {
+      isAudioUnlocked = true;
+      console.log('BGM 오디오 완전 해제 성공!');
+      if (gameStarted && !useSynthBGM && bgmAudio.paused) {
+        playNextBGM();
+      }
+    }).catch(e => {
+      // 소스가 지정되어 실행되거나 공백 재생 시도
+      console.log('오디오 잠금 해제 시도 중...');
+    });
+  }
+}
+
+// 맑고 경쾌한 우주 오르골 합성 배경음 (질리지 않는 펜타토닉 멜로디 시퀀서)
 function startSynthBGM() {
   const ac = getAudio(); if (!ac) return;
   stopSynthBGM();
+  
   synthBGMGain = ac.createGain();
-  synthBGMGain.gain.setValueAtTime(0.001, ac.currentTime);
-  synthBGMGain.gain.linearRampToValueAtTime(0.08, ac.currentTime + 2);
+  synthBGMGain.gain.setValueAtTime(0.06, ac.currentTime); // 은은하고 기분 좋은 볼륨
   synthBGMGain.connect(ac.destination);
-  const freqs = [130.81, 164.81, 196.00, 246.94]; // C3 E3 G3 B3
-  synthBGMNode = freqs.map(f => {
-    const o = ac.createOscillator();
-    const g = ac.createGain();
-    o.type = 'sine';
-    o.frequency.value = f;
-    g.gain.value = 0.25;
-    o.connect(g); g.connect(synthBGMGain);
-    o.start();
-    // 느린 LFO로 움직임 추가
-    const lfo = ac.createOscillator();
-    const lfoGain = ac.createGain();
-    lfo.frequency.value = 0.1 + Math.random() * 0.2;
-    lfoGain.gain.value = f * 0.003;
-    lfo.connect(lfoGain); lfoGain.connect(o.frequency);
-    lfo.start();
-    return o;
-  });
+  
+  // 상큼하고 귀여운 우주 멜로디 (C5~C6 메이저/펜타토닉)
+  const melody = [
+    523.25, 587.33, 659.25, 783.99, 880.00, 783.99, 659.25, 587.33, // C5 D5 E5 G5 A5 G5 E5 D5
+    659.25, 783.99, 880.00, 1046.50, 880.00, 783.99, 659.25, 523.25 // E5 G5 A5 C6 A5 G5 E5 C5
+  ];
+  
+  // 부드럽게 흐르는 우주 패드 화음 (도-파-솔-도 흐름)
+  const bassProgression = [
+    [261.63, 329.63, 392.00], // C Maj (C4, E4, G4)
+    [349.23, 440.00, 523.25], // F Maj (F4, A4, C5)
+    [392.00, 493.88, 587.33], // G Maj (G4, B4, D5)
+    [261.63, 329.63, 392.00]  // C Maj
+  ];
+  
+  let step = 0;
+  
+  function playStep() {
+    if (!gameStarted || !useSynthBGM || !synthBGMGain) return;
+    const now = ac.currentTime;
+    
+    // 멜로디 연주 (맑은 우주 오르골 소리 - Triangle Wave)
+    const freq = melody[step % melody.length];
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    
+    // 오르골 엔벨로프 (칼 어택 + 잔잔하고 긴 여운)
+    gain.gain.setValueAtTime(0.0, now);
+    gain.gain.linearRampToValueAtTime(0.05, now + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+    
+    osc.connect(gain);
+    gain.connect(synthBGMGain);
+    
+    osc.start(now);
+    osc.stop(now + 0.55);
+    
+    // 4스텝(2초)마다 신비롭고 아련한 뒷받침 코드 패드 소리 연주 (Sine Wave)
+    if (step % 4 === 0) {
+      const chordIdx = Math.floor(step / 4) % bassProgression.length;
+      const chord = bassProgression[chordIdx];
+      chord.forEach(f => {
+        const chordOsc = ac.createOscillator();
+        const chordGain = ac.createGain();
+        
+        chordOsc.type = 'sine';
+        chordOsc.frequency.value = f;
+        
+        // 부드럽게 나타났다가 서서히 사라지는 패드 엔벨로프
+        chordGain.gain.setValueAtTime(0.0, now);
+        chordGain.gain.linearRampToValueAtTime(0.012, now + 0.6); // 아주 부드럽게 등장
+        chordGain.gain.exponentialRampToValueAtTime(0.001, now + 1.9);
+        
+        chordOsc.connect(chordGain);
+        chordGain.connect(synthBGMGain);
+        
+        chordOsc.start(now);
+        chordOsc.stop(now + 2.0);
+      });
+    }
+    
+    step++;
+  }
+  
+  playStep();
+  synthIntervalId = setInterval(playStep, 500); // 120 bpm 템포로 순환
 }
+
 function stopSynthBGM() {
-  try { if (synthBGMGain) { synthBGMGain.gain.linearRampToValueAtTime(0.001, getAudio().currentTime + 0.5); setTimeout(()=>{try{if(synthBGMNode) synthBGMNode.forEach(o=>o.stop());}catch(e){}}, 600); } } catch(e){}
-  synthBGMNode = null; synthBGMGain = null;
+  if (synthIntervalId) {
+    clearInterval(synthIntervalId);
+    synthIntervalId = null;
+  }
+  if (synthBGMGain) {
+    try {
+      const ac = getAudio();
+      synthBGMGain.gain.linearRampToValueAtTime(0.001, ac.currentTime + 0.4);
+    } catch(e) {}
+    synthBGMGain = null;
+  }
 }
 
 function getAudio(){
@@ -318,20 +417,18 @@ function playBounceTone(){playTone(200,0.18,0.12,'sawtooth');setTimeout(()=>play
 function updateBGM() {
   if (!gameStarted) {
     if (useSynthBGM) stopSynthBGM();
-    else bgms.forEach(bgm => bgm.pause());
+    else bgmAudio.pause();
     return;
   }
   if (useSynthBGM) {
-    if (!synthBGMGain) startSynthBGM();
+    if (!synthIntervalId) startSynthBGM();
     return;
   }
-  const target = bgms[currentBgmIndex];
-  if (target.paused) target.play().catch(e=>{
-    console.log('BGM play prevented', e);
-    // 재생 실패 시 합성 음악으로 전환
-    useSynthBGM = true;
-    startSynthBGM();
-  });
+  if (bgmAudio.paused) {
+    bgmAudio.play().catch(e => {
+      console.log('BGM 재생 대기:', e.message);
+    });
+  }
 }
 function startBGM(){
   updateBGM();
@@ -550,7 +647,7 @@ new p5(function(p){
     el.addEventListener('pointerdown',e=>{
       e.preventDefault();
       el.setPointerCapture(e.pointerId);
-      getAudio();
+      unlockAudio();
       onPress(e.clientX,e.clientY);
     },{passive:false});
     el.addEventListener('pointermove',e=>{
@@ -740,6 +837,7 @@ function addBtn(id,fn){
   el.addEventListener('pointerdown',e=>{
     e.preventDefault();
     e.stopPropagation();
+    unlockAudio();
     fn(e);
   },{passive:false});
 }
@@ -749,6 +847,7 @@ function addBtns(sel,fn){
     el.addEventListener('pointerdown',e=>{
       e.preventDefault();
       e.stopPropagation();
+      unlockAudio();
       fn(e);
     },{passive:false});
   });
@@ -780,6 +879,7 @@ document.querySelectorAll('[data-diff]').forEach(btn=>{
   btn.style.touchAction='manipulation';
   btn.addEventListener('pointerdown',e=>{
     e.preventDefault(); e.stopPropagation();
+    unlockAudio();
     playDiff=parseInt(btn.dataset.diff);
     document.querySelectorAll('[data-diff]').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
@@ -790,6 +890,7 @@ document.querySelectorAll('[data-op]').forEach(btn=>{
   btn.style.touchAction='manipulation';
   btn.addEventListener('pointerdown',e=>{
     e.preventDefault(); e.stopPropagation();
+    unlockAudio();
     playOp=btn.dataset.op;
     document.querySelectorAll('[data-op]').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
