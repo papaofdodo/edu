@@ -18,7 +18,10 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 #message-box{position:fixed;bottom:120px;left:50%;transform:translateX(-50%);font-size:clamp(16px,4.5vw,26px);color:#fff;text-align:center;pointer-events:none;opacity:0;transition:opacity 0.4s;text-shadow:0 0 30px rgba(100,255,200,0.9);white-space:nowrap;z-index:10}
 #score-display{position:fixed;top:15px;right:15px;font-size:18px;color:rgba(255,255,255,0.9);pointer-events:none;z-index:10;text-shadow:0 0 10px rgba(255,215,0,0.5);font-weight:bold}
 /* INTRO */
-#intro-screen{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 40%,#1a0540 0%,#050010 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+#intro-screen{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 30%,#1a0a4a 0%,#0d0628 40%,#050015 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow:hidden}
+    /* 인트로 별빛 우주 배경 애니메이션 */
+    #intro-stars-canvas{position:absolute;inset:0;z-index:0;pointer-events:none}
+    #intro-screen>*:not(#intro-stars-canvas){position:relative;z-index:1}
 #intro-screen .rocket{font-size:clamp(60px,14vw,96px);animation:float 2.5s ease-in-out infinite}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
 #intro-screen h1{font-size:clamp(22px,5.5vw,38px);color:#fff;text-shadow:0 0 30px #a06aff;text-align:center;margin:14px 0 10px}
@@ -50,7 +53,13 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 #milestone-continue{background:linear-gradient(135deg,#059669,#0891b2);border:none;border-radius:28px;padding:14px 40px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:clamp(16px,4vw,24px);color:#fff;cursor:pointer;pointer-events:all;box-shadow:0 0 30px rgba(5,150,105,0.4)}
 /* RANK OVERLAY */
 #rank-overlay{position:fixed;inset:0;z-index:105;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px)}
-#rank-panel{background:linear-gradient(145deg,#1a0a3e,#0a1a3e);border:2px solid rgba(255,215,0,0.4);border-radius:28px;padding:28px 24px;width:min(92vw,420px);max-height:85vh;overflow-y:auto;touch-action:pan-y;color:#fff;text-align:center;box-shadow:0 0 60px rgba(255,215,0,0.2)}
+#rank-panel{background:linear-gradient(145deg,#1a0a3e,#0a1a3e);border:2px solid rgba(255,215,0,0.4);border-radius:28px;padding:28px 24px;width:min(92vw,420px);max-height:85vh;overflow:hidden;display:flex;flex-direction:column;color:#fff;text-align:center;box-shadow:0 0 60px rgba(255,215,0,0.2)}
+    /* 랭킹 리스트 스크롤 영역 */
+    .rank-list-wrapper{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;max-height:50vh;margin-bottom:12px;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(255,215,0,0.3) transparent}
+    .rank-list-wrapper::-webkit-scrollbar{width:6px}
+    .rank-list-wrapper::-webkit-scrollbar-track{background:transparent}
+    .rank-list-wrapper::-webkit-scrollbar-thumb{background:rgba(255,215,0,0.3);border-radius:3px}
+    .rank-list-wrapper::-webkit-scrollbar-thumb:hover{background:rgba(255,215,0,0.5)}
 #rank-panel h3{font-size:clamp(18px,5vw,26px);color:#ffd700;text-shadow:0 0 20px rgba(255,215,0,0.6);margin-bottom:20px}
 .rank-list{list-style:none;margin-bottom:16px;padding:0}
 .rank-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;margin-bottom:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);font-size:clamp(12px,3vw,15px)}
@@ -89,6 +98,7 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 </head>
 <body>
 <div id="intro-screen">
+  <canvas id="intro-stars-canvas"></canvas>
   <div class="rocket">🚀</div>
   <h1>우주가 어두워졌어요!</h1>
   <p>나쁜 우주 괴물이 별들을 훔쳐갔어요.<br>마법 숫자를 풀어서<br>✨ <strong>별을 되찾아 우주를 구해요!</strong><br><span style="font-size:0.8em;color:rgba(255,255,255,0.6)">별 10개마다 특별한 일이 일어나요 🌠</span></p>
@@ -132,10 +142,12 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 <div id="rank-overlay">
   <div id="rank-panel">
     <h3>🏆 최고 기록</h3>
-    <ul class="rank-list" id="rank-list"><li style="color:rgba(255,255,255,0.4);padding:20px">불러오는 중...</li></ul>
+    <div class="rank-list-wrapper">
+      <ul class="rank-list" id="rank-list"><li style="color:rgba(255,255,255,0.4);padding:20px">불러오는 중...</li></ul>
+    </div>
     <div class="rank-btns">
       <button class="rank-btn-action" id="rank-save-btn">💾 내 기록 저장</button>
-      <button class="rank-btn-action" id="rank-close-btn">✅ 닫기</button>
+      <button class="rank-btn-action" id="rank-back-btn" style="background:rgba(255,255,255,0.1)">⬅️ 뒤로가기</button>
     </div>
     <div id="rank-status"></div>
   </div>
@@ -509,7 +521,9 @@ class Orb {
     if(this.x-this.r<0){this.x=this.r;this.vx=Math.abs(this.vx);this.bounceVx=Math.abs(this.bounceVx);}
     if(this.x+this.r>W){this.x=W-this.r;this.vx=-Math.abs(this.vx);this.bounceVx=-Math.abs(this.bounceVx);}
     if(this.y-this.r<170){this.y=this.r+170;this.vy=Math.abs(this.vy);this.bounceVy=Math.abs(this.bounceVy);}
-    if(this.y+this.r>H){this.y=H-this.r;this.vy=-Math.abs(this.vy);this.bounceVy=-Math.abs(this.bounceVy);}
+    // 공이 화면 하단 85% 이상으로 내려가지 않도록 제한
+    const bottomLimit=H*0.85;
+    if(this.y+this.r>bottomLimit){this.y=bottomLimit-this.r;this.vy=-Math.abs(this.vy);this.bounceVy=-Math.abs(this.bounceVy);}
     this.wobble+=this.wobbleSpeed; this.glowPhase+=0.03;
     this.scale+=(this.targetScale-this.scale)*0.12;
   }
@@ -612,7 +626,9 @@ function setupLevel(p){
   for(let i=all.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[all[i],all[j]]=[all[j],all[i]];}
   all.forEach((n,i)=>{
     let x,y, attempts=0;
-    do{x=80+Math.random()*(W-160);y=220+Math.random()*Math.max(10,H-300);attempts++;}while(Math.hypot(x-W/2,y-H/2)<140 && attempts<50);
+    // 공 생성 시에도 하단 85% 이내에서만 배치
+    const spawnBottom=H*0.85;
+    do{x=80+Math.random()*(W-160);y=220+Math.random()*Math.max(10,spawnBottom-280);attempts++;}while(Math.hypot(x-W/2,y-H/2)<140 && attempts<50);
     orbs.push(new Orb(n,x,y,n===question.ans));
   });
   blackHole=new BlackHole(W/2,H/2);
@@ -676,11 +692,25 @@ new p5(function(p){
 
   p.draw=function(){
     const dt=slowMoFactor;
-    p.background(5,0,18);
+    // 약간 더 밝은 우주 배경 (별빛이 보이도록)
+    p.background(8,2,28);
     p.noStroke();
-    p.fill(30,10,60,40); p.ellipse(p.width*0.3,p.height*0.4,p.width*0.8,p.height*0.6);
-    p.fill(10,30,60,30); p.ellipse(p.width*0.7,p.height*0.6,p.width*0.7,p.height*0.5);
-    bgStars.forEach(s=>{s.phase+=s.spd*dt;const a=100+100*Math.sin(s.phase);p.noStroke();p.fill(255,255,255,a);p.circle(s.x,s.y,s.r*2);});
+    p.fill(25,12,55,50); p.ellipse(p.width*0.3,p.height*0.35,p.width*0.9,p.height*0.7);
+    p.fill(12,25,55,35); p.ellipse(p.width*0.7,p.height*0.6,p.width*0.7,p.height*0.5);
+    p.fill(20,8,50,25); p.ellipse(p.width*0.5,p.height*0.2,p.width*0.5,p.height*0.3);
+    // 반짝이는 별빛 배경
+    bgStars.forEach(s=>{
+      s.phase+=s.spd*dt;
+      const a=120+135*Math.sin(s.phase);
+      p.noStroke();
+      // 밝은 별은 은은한 빛줄기 효과
+      if(s.r>1.8){
+        p.fill(200,200,255,a*0.15);
+        p.circle(s.x,s.y,s.r*8);
+      }
+      p.fill(255,255,255,a);
+      p.circle(s.x,s.y,s.r*2);
+    });
     if(slowMoTimer>0){slowMoFactor=0.25;slowMoTimer--;}else{slowMoFactor+=(1-slowMoFactor)*0.08;}
     if(blackHole&&gameStarted){blackHole.update();blackHole.draw(p);}
     orbs.forEach(o=>{o.update(p.width,p.height);o.draw(p);});
@@ -810,7 +840,17 @@ function startGame(mode){
     document.getElementById('play-settings').style.display='flex';
   }
   gameStarted=true;
-  getAudio(); startBGM();
+  // 게임 시작 시 즉시 오디오 해제 및 BGM 재생
+  unlockAudio();
+  getAudio();
+  // 오디오 잠금 해제 후 즉시 BGM 시작
+  setTimeout(()=>{
+    startBGM();
+    // 혹시 재생되지 않았으면 한 번 더 시도
+    if(!useSynthBGM && bgmAudio.paused){
+      bgmAudio.play().catch(()=>{});
+    }
+  }, 100);
   if(window._setupLevel) window._setupLevel();
 }
 
@@ -990,6 +1030,8 @@ function showSaveOverlay(){
 addBtn('board-btn',()=>showRankOverlay());
 addBtn('rank-open-btn',()=>showSaveOverlay());
 addBtn('rank-close-btn',()=>{document.getElementById('rank-overlay').style.display='none';});
+// 랭킹 게시판 뒤로가기 버튼
+addBtn('rank-back-btn',()=>{document.getElementById('rank-overlay').style.display='none';});
 addBtn('rank-save-btn',()=>{document.getElementById('rank-overlay').style.display='none';showSaveOverlay();});
 addBtn('save-cancel-btn',()=>{
   document.getElementById('save-overlay').style.display='none';
@@ -1019,6 +1061,121 @@ addBtn('save-confirm-btn',async()=>{
   if(currentMode==='rank'&&lives<=0) setTimeout(()=>returnToMenu(), 2000);
 });
 document.getElementById('player-name-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('save-confirm-btn').click();});
+
+// ── 인트로 별빛 우주 배경 캔버스 애니메이션 ──
+(function initIntroStars(){
+  const canvas=document.getElementById('intro-stars-canvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const stars=[];
+  const shootingStars=[];
+  let animId=null;
+
+  function resize(){
+    canvas.width=window.innerWidth;
+    canvas.height=window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize',resize);
+
+  // 작고 반짝이는 별 200개 생성
+  for(let i=0;i<200;i++){
+    stars.push({
+      x:Math.random()*canvas.width,
+      y:Math.random()*canvas.height,
+      r:Math.random()*2+0.3,
+      phase:Math.random()*Math.PI*2,
+      speed:0.008+Math.random()*0.025,
+      // 별 색상 (흰색~파란색~보라색 랜덤)
+      hue:200+Math.random()*80,
+      sat:Math.random()*40,
+      bright:70+Math.random()*30
+    });
+  }
+
+  function addShootingStar(){
+    if(shootingStars.length<2 && Math.random()<0.008){
+      shootingStars.push({
+        x:Math.random()*canvas.width*0.8,
+        y:Math.random()*canvas.height*0.4,
+        vx:3+Math.random()*4,
+        vy:1.5+Math.random()*2,
+        life:1,
+        length:30+Math.random()*50
+      });
+    }
+  }
+
+  function drawFrame(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // 은은한 성운 효과
+    const grd1=ctx.createRadialGradient(canvas.width*0.3,canvas.height*0.3,0,canvas.width*0.3,canvas.height*0.3,canvas.width*0.5);
+    grd1.addColorStop(0,'rgba(80,30,120,0.08)');
+    grd1.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=grd1;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    const grd2=ctx.createRadialGradient(canvas.width*0.7,canvas.height*0.6,0,canvas.width*0.7,canvas.height*0.6,canvas.width*0.4);
+    grd2.addColorStop(0,'rgba(20,40,100,0.06)');
+    grd2.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=grd2;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // 별 그리기
+    stars.forEach(s=>{
+      s.phase+=s.speed;
+      const alpha=0.3+0.7*((Math.sin(s.phase)+1)/2);
+      // 밝은 별에 빛줄기 효과
+      if(s.r>1.5){
+        const glowR=s.r*4;
+        const glow=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,glowR);
+        glow.addColorStop(0,`hsla(${s.hue},${s.sat}%,${s.bright}%,${alpha*0.25})`);
+        glow.addColorStop(1,'hsla(0,0%,100%,0)');
+        ctx.fillStyle=glow;
+        ctx.beginPath();
+        ctx.arc(s.x,s.y,glowR,0,Math.PI*2);
+        ctx.fill();
+      }
+      ctx.fillStyle=`hsla(${s.hue},${s.sat}%,${s.bright}%,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fill();
+    });
+
+    // 별똥별
+    addShootingStar();
+    for(let i=shootingStars.length-1;i>=0;i--){
+      const ss=shootingStars[i];
+      ss.x+=ss.vx;
+      ss.y+=ss.vy;
+      ss.life-=0.012;
+      if(ss.life<=0){shootingStars.splice(i,1);continue;}
+      const grad=ctx.createLinearGradient(ss.x,ss.y,ss.x-ss.vx*ss.length/4,ss.y-ss.vy*ss.length/4);
+      grad.addColorStop(0,`rgba(255,255,255,${ss.life*0.9})`);
+      grad.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.strokeStyle=grad;
+      ctx.lineWidth=1.5;
+      ctx.beginPath();
+      ctx.moveTo(ss.x,ss.y);
+      ctx.lineTo(ss.x-ss.vx*ss.length/4,ss.y-ss.vy*ss.length/4);
+      ctx.stroke();
+    }
+
+    animId=requestAnimationFrame(drawFrame);
+  }
+  drawFrame();
+
+  // 인트로 화면이 숨겨지면 애니메이션 정지
+  const observer=new MutationObserver(()=>{
+    const intro=document.getElementById('intro-screen');
+    if(intro && intro.style.display==='none'){
+      cancelAnimationFrame(animId);
+    }
+  });
+  const introEl=document.getElementById('intro-screen');
+  if(introEl) observer.observe(introEl,{attributes:true,attributeFilter:['style']});
+})();
 </script>
 </body>
 </html>
