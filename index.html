@@ -177,7 +177,7 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 <div id="score-display" style="display:none">⭐ 0</div>
 <div id="lives-display" style="display:none"></div>
 <button id="back-btn">🏠 모드</button>
-<button id="rank-open-btn">🏆 기록저장</button>
+<button id="app-info-btn" style="position:fixed;top:15px;right:15px;left:auto;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);border-radius:20px;padding:8px 16px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;pointer-events:all;z-index:30">📱 앱 정보</button>
 <div id="play-settings">
   <button id="settings-toggle-btn" class="setting-btn" style="width:fit-content; background:rgba(255,255,255,0.15); box-shadow:0 0 10px rgba(0,0,0,0.5); font-size:14px; padding:8px 16px;">⚙️ 설정</button>
   <div id="settings-panel" style="display:none; flex-direction:column; gap:8px; margin-top:8px; background:rgba(0,0,0,0.6); padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(8px);">
@@ -1260,7 +1260,25 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// 홈화면 바로가기 추가 안내 팝업 바인딩 (WebAPK 강제 설치 유도로 인한 플레이프로텍트 버그 근절)
+// 앱 정보 버튼 이벤트 바인딩
+const appInfoBtn = document.getElementById('app-info-btn');
+if (appInfoBtn) {
+  appInfoBtn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    unlockAudio();
+    document.getElementById('app-info-overlay').style.display = 'flex';
+  });
+}
+// 앱 정보 모달 닫기 버튼
+const appInfoClose = document.getElementById('app-info-close');
+if (appInfoClose) {
+  appInfoClose.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('app-info-overlay').style.display = 'none';
+  });
+}
 if (installBtn) {
   installBtn.addEventListener('pointerdown', e => {
     e.preventDefault();
@@ -1345,5 +1363,14 @@ addBtn('pwa-guide-close-btn', () => {
   });
 })();
 </script>
+    <!-- 앱 정보 모달 -->
+    <div id="app-info-overlay" style="display:none;position:fixed;inset:0;z-index:110;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);">
+      <div style="background:linear-gradient(145deg,#1a0a3e,#0a1a3e);border:2px solid rgba(255,215,0,0.4);border-radius:28px;padding:24px;max-width:90vw;max-height:80vh;overflow:auto;color:#fff;text-align:center;box-shadow:0 0 60px rgba(255,215,0,0.2);">
+        <h3 style="color:#ffd700;">앱 정보</h3>
+        <p style="margin:8px 0;">개발 배경: 우주 수학 탐험은 어린이와 청소년이 즐겁게 별을 모으며 기본 수학 연산을 연습하도록 설계되었습니다.</p>
+        <p style="margin:8px 0;">최종 업데이트: 2026년 05월 22일 00시 10분 47초</p>
+        <button id="app-info-close" style="margin-top:12px;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.3);border-radius:20px;padding:8px 16px;color:#fff;cursor:pointer;">닫기</button>
+      </div>
+    </div>
 </body>
 </html>
