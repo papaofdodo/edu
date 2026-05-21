@@ -32,7 +32,7 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
     #intro-screen h1{font-size:clamp(22px,5.5vw,38px);background:linear-gradient(135deg,#a06aff,#ff6fff);-webkit-background-clip:text;color:transparent;text-shadow:0 0 30px #a06aff;text-align:center;margin:14px 0 10px}
 #intro-screen p{font-size:clamp(13px,3.5vw,20px);background:linear-gradient(135deg,#a06aff,#ff6fff);-webkit-background-clip:text;color:transparent;text-align:center;line-height:1.7;max-width:460px}
 /* MODE SELECT */
-.mode-select-btns{display:flex;gap:16px;margin-top:28px;flex-wrap:wrap;justify-content:center}
+.mode-select-btns{display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:28px;flex-wrap:wrap;justify-content:center}
 .mode-select-btn{border:none;border-radius:28px;padding:18px 36px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:clamp(17px,4vw,24px);color:#fff;cursor:pointer;pointer-events:all;transition:transform 0.15s,box-shadow 0.15s;box-shadow:0 0 30px rgba(0,0,0,0.4)}
 #play-mode-btn{background:linear-gradient(135deg,#059669,#0891b2)}
 #play-mode-btn:hover{transform:scale(1.05);box-shadow:0 0 40px rgba(5,150,105,0.6)}
@@ -141,9 +141,9 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
   <p>나쁜 우주 괴물이 별들을 훔쳐갔어요.<br>마법 숫자를 풀어서<br>✨ <strong>별을 되찾아 우주를 구해요!</strong><br><span style="font-size:0.8em;color:rgba(255,255,255,0.6)">별 10개마다 특별한 일이 일어나요 🌠</span></p>
   <div class="mode-select-btns">
     <button class="mode-select-btn" id="play-mode-btn">🎮 놀이 모드</button>
-    <button class="mode-select-btn" id="rank-mode-btn">🏆 랭킹전</button>
+    <button class="mode-select-btn" id="rank-mode-btn">🏆 랭킹 모드</button>
     <button class="mode-select-btn" id="board-btn" style="background:rgba(255,215,0,0.15);border:2px solid rgba(255,215,0,0.5);margin-top:12px;color:#ffd700;font-size:18px;padding:12px 30px">📋 랭킹 게시판</button>
-    <!-- 홈 화면 추가 버튼 -->
+    <button id="app-info-btn" class="mode-select-btn">📱 앱 정보</button>
     <button id="pwa-install-btn" style="background:linear-gradient(135deg,#0369a1,#0284c7);box-shadow:0 0 25px rgba(3,105,161,0.4);animation:none">📱 홈 화면에 바로가기 추가 안내</button>
   </div>
   <!-- 최근 업데이트 일자 표기 (절대 좌표 대신 마진 배치로 변경하여 화면 잘림 현상 방지) -->
@@ -177,7 +177,7 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 <div id="score-display" style="display:none">⭐ 0</div>
 <div id="lives-display" style="display:none"></div>
 <button id="back-btn">🏠 모드</button>
-<button id="app-info-btn" style="position:fixed;top:15px;right:15px;left:auto;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);border-radius:20px;padding:8px 16px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;pointer-events:all;z-index:30">📱 앱 정보</button>
+<!-- 앱 정보 버튼은 mode-select-btns 내부로 이동했으며, 이 고정 버튼은 제거되었습니다 -->
 <div id="play-settings">
   <button id="settings-toggle-btn" class="setting-btn" style="width:fit-content; background:rgba(255,255,255,0.15); box-shadow:0 0 10px rgba(0,0,0,0.5); font-size:14px; padding:8px 16px;">⚙️ 설정</button>
   <div id="settings-panel" style="display:none; flex-direction:column; gap:8px; margin-top:8px; background:rgba(0,0,0,0.6); padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(8px);">
