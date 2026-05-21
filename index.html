@@ -59,11 +59,12 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 #rank-overlay{position:fixed;inset:0;z-index:105;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px)}
 #rank-panel{background:linear-gradient(145deg,#1a0a3e,#0a1a3e);border:2px solid rgba(255,215,0,0.4);border-radius:28px;padding:28px 24px;width:min(92vw,420px);max-height:85vh;overflow:hidden;display:flex;flex-direction:column;color:#fff;text-align:center;box-shadow:0 0 60px rgba(255,215,0,0.2)}
     /* 랭킹 리스트 스크롤 영역 */
-    .rank-list-wrapper{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;max-height:50vh;margin-bottom:12px;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(255,215,0,0.3) transparent}
+    .rank-list-wrapper{flex:1;overflow-y:auto !important;-webkit-overflow-scrolling:touch;touch-action:pan-y !important;max-height:50vh;margin-bottom:12px;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(255,215,0,0.3) transparent}
     .rank-list-wrapper::-webkit-scrollbar{width:6px}
     .rank-list-wrapper::-webkit-scrollbar-track{background:transparent}
     .rank-list-wrapper::-webkit-scrollbar-thumb{background:rgba(255,215,0,0.3);border-radius:3px}
     .rank-list-wrapper::-webkit-scrollbar-thumb:hover{background:rgba(255,215,0,0.5)}
+    .rank-list, .rank-item{touch-action:pan-y !important}
 #rank-panel h3{font-size:clamp(18px,5vw,26px);color:#ffd700;text-shadow:0 0 20px rgba(255,215,0,0.6);margin-bottom:20px}
 .rank-list{list-style:none;margin-bottom:16px;padding:0}
 .rank-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;margin-bottom:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);font-size:clamp(12px,3vw,15px)}
@@ -1274,6 +1275,24 @@ if (!isStandalone) {
 addBtn('ios-install-close-btn', () => {
   document.getElementById('ios-install-overlay').style.display = 'none';
 });
+
+// ── 랭킹 리스트 터치 스크롤 활성화 (p5 캔버스 이벤트 방해 방지) ──
+(function enableRankScroll(){
+  const wrapper = document.querySelector('.rank-list-wrapper');
+  if(!wrapper) return;
+  
+  // 캔버스의 pointerdown 캡처나 preventDefault가 스크롤을 막지 못하도록 이벤트 전파를 철저히 차단
+  const events = ['pointerdown', 'pointermove', 'pointerup', 'touchstart', 'touchmove', 'touchend', 'scroll'];
+  events.forEach(evt => {
+    wrapper.addEventListener(evt, e => {
+      e.stopPropagation();
+    }, { passive: true });
+  });
+  
+  // 모바일/태블릿 터치 스크롤 안정성 보강
+  wrapper.style.overflowY = 'auto';
+  wrapper.style.webkitOverflowScrolling = 'touch';
+})();
 </script>
 </body>
 </html>
