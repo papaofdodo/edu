@@ -95,12 +95,12 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 #pwa-install-btn{background:linear-gradient(135deg,#059669,#10b981);border:2px solid rgba(255,255,255,0.3);border-radius:28px;padding:14px 28px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:clamp(14px,3.5vw,17px);color:#fff;cursor:pointer;pointer-events:all;transition:transform(0.15s),box-shadow 0.15s;box-shadow:0 0 25px rgba(5,150,105,0.4);margin-top:16px;width:min(90vw,340px);text-align:center;font-weight:bold;animation:pulse-install 2s infinite}
 #pwa-install-btn:active{transform:scale(0.95)}
 @keyframes pulse-install{0%,100%{box-shadow:0 0 25px rgba(5,150,105,0.4)}50%{box-shadow:0 0 35px rgba(16,185,129,0.8)}}
-/* iOS 설치 모달 스타일 */
-#ios-install-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px)}
-#ios-install-panel{background:linear-gradient(145deg,#1e1b4b,#0f172a);border:2px solid rgba(160,100,255,0.5);border-radius:28px;padding:28px 24px;width:min(90vw,360px);color:#fff;text-align:center;box-shadow:0 0 60px rgba(120,60,255,0.4)}
-#ios-install-panel h3{font-size:20px;margin-bottom:12px;color:#ffd700;text-shadow:0 0 15px rgba(255,215,0,0.5)}
-#ios-install-panel p{font-size:14px;color:rgba(255,255,255,0.8);line-height:1.6;margin-bottom:20px;text-align:left}
-#ios-install-close-btn{background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:18px;padding:12px 24px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;width:100%}
+/* 바로가기 가이드 모달 스타일 */
+#pwa-guide-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px)}
+#pwa-guide-panel{background:linear-gradient(145deg,#1e1b4b,#0f172a);border:2px solid rgba(255,215,0,0.4);border-radius:28px;padding:28px 24px;width:min(92vw,370px);color:#fff;text-align:center;box-shadow:0 0 60px rgba(120,60,255,0.4)}
+#pwa-guide-panel h3{font-size:20px;margin-bottom:14px;color:#ffd700;text-shadow:0 0 15px rgba(255,215,0,0.5)}
+#pwa-guide-panel p{font-size:14px;color:rgba(255,255,255,0.85);line-height:1.7;margin-bottom:20px;text-align:left}
+#pwa-guide-close-btn{background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:18px;padding:12px 24px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;width:100%;font-weight:bold}
 /* 랭킹 스크롤 버튼 스타일 */
 .rank-scroll-btn {
   background: rgba(255, 255, 255, 0.12);
@@ -143,25 +143,32 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
     <button class="mode-select-btn" id="rank-mode-btn">🏆 랭킹전</button>
     <button class="mode-select-btn" id="board-btn" style="background:rgba(255,215,0,0.15);border:2px solid rgba(255,215,0,0.5);margin-top:12px;color:#ffd700;font-size:18px;padding:12px 30px">📋 랭킹 게시판</button>
     <!-- 홈 화면 추가 버튼 -->
-    <button id="pwa-install-btn" style="display:none">📱 홈 화면에 앱 설치하기</button>
+    <button id="pwa-install-btn" style="background:linear-gradient(135deg,#0369a1,#0284c7);box-shadow:0 0 25px rgba(3,105,161,0.4);animation:none">📱 홈 화면에 바로가기 추가 안내</button>
   </div>
-  <!-- 최근 업데이트 일자 표기 -->
-  <div style="position:absolute;bottom:12px;font-size:11px;color:rgba(255,255,255,0.35);font-family:sans-serif;pointer-events:none;text-align:center;width:100%;letter-spacing:0.5px;z-index:2">
-    최근 업데이트: 2026년 05월 22일 00시 02분 02초
+  <!-- 최근 업데이트 일자 표기 (절대 좌표 대신 마진 배치로 변경하여 화면 잘림 현상 방지) -->
+  <div style="margin-top:20px;margin-bottom:10px;font-size:11px;color:rgba(255,255,255,0.45);font-family:sans-serif;pointer-events:none;text-align:center;width:100%;letter-spacing:0.5px;z-index:2">
+    최근 업데이트: 2026년 05월 22일 00시 10분 47초
   </div>
 </div>
 
-<!-- iOS 사파리 홈 화면 추가 안내 모달 -->
-<div id="ios-install-overlay">
-  <div id="ios-install-panel">
-    <h3>📱 홈 화면에 앱 추가하기</h3>
+<!-- 통합 홈 화면 추가 안내 모달 -->
+<div id="pwa-guide-overlay">
+  <div id="pwa-guide-panel">
+    <h3>📱 홈 화면에 바로가기 추가</h3>
     <p>
-      바탕화면에 <strong>바로가기 앱 아이콘</strong>을 만들어 편하게 접속해 보아요!<br><br>
-      1. 아이폰 Safari 브라우저 하단의 <strong>공유 버튼</strong>(<span style="font-size:1.2em">📤</span>)을 눌러주세요.<br><br>
-      2. 메뉴에서 <strong>'홈 화면에 추가'</strong>(<span style="font-size:1.2em">➕</span>)를 선택해 주세요.<br><br>
-      3. 오른쪽 상단의 <strong>'추가'</strong>를 누르면 바탕화면에 예쁜 우주선 앱 아이콘이 바로 생성됩니다! 🚀
+      매번 주소를 입력하지 않고, 바탕화면에 안전한 앱 아이콘 바로가기를 만들어 보아요! 🚀<br><br>
+      
+      <strong>🤖 안드로이드 (크롬 / 삼성인터넷)</strong><br>
+      1. 브라우저 우측 상단이나 하단의 <strong>메뉴 버튼</strong>(점 3개 <span style="font-size:1.1em">⋮</span> 또는 선 3개 <span style="font-size:1.1em">☰</span>)을 누릅니다.<br>
+      2. <strong>'홈 화면에 추가'</strong> 메뉴를 찾아 선택해 주세요.<br><br>
+      
+      <strong>🍎 아이폰 (Safari)</strong><br>
+      1. 사파리 브라우저 하단의 <strong>공유 버튼</strong>(<span style="font-size:1.1em">📤</span>)을 눌러주세요.<br>
+      2. 메뉴 창을 위로 올려 <strong>'홈 화면에 추가'</strong>(<span style="font-size:1.1em">➕</span>)를 터치해 주세요.<br><br>
+      
+      <span style="color:#ffd700">★ 브라우저 기본 기능이므로 경고 메시지가 전혀 없으며 100% 안전하게 아이콘이 생성됩니다! ⭐</span>
     </p>
-    <button id="ios-install-close-btn">확인! 👍</button>
+    <button id="pwa-guide-close-btn">확인! 👍</button>
   </div>
 </div>
 <div id="question-banner" style="display:none"></div>
@@ -1241,10 +1248,9 @@ document.getElementById('player-name-input').addEventListener('keydown',e=>{if(e
 })();
 
 // ── PWA 홈화면 설치 유도 로직 ──
-let deferredPrompt = null;
 const installBtn = document.getElementById('pwa-install-btn');
 
-// 서비스 워커 등록
+// 서비스 워커 등록 (캐싱 유지)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
@@ -1253,59 +1259,19 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// 1. 이미 홈 화면에 추가되어 앱처럼 켜진 상태(standalone)인지 확인
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
-// 2. iOS 브라우저인지 감지
-const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
-if (!isStandalone) {
-  if (isIos && isSafari) {
-    // iOS 사파리의 경우 브라우저 설치 팝업을 직접 띄울 수 없으므로 커스텀 가이드 모달 연결
-    if (installBtn) {
-      installBtn.style.display = 'block';
-      installBtn.addEventListener('pointerdown', e => {
-        e.preventDefault();
-        e.stopPropagation();
-        unlockAudio();
-        document.getElementById('ios-install-overlay').style.display = 'flex';
-      });
-    }
-  } else {
-    // 안드로이드/크롬 등의 PWA 설치 이벤트 감지
-    window.addEventListener('beforeinstallprompt', e => {
-      // 기본 브라우저 배너 방지
-      e.preventDefault();
-      deferredPrompt = e;
-      // 설치 버튼 보여주기
-      if (installBtn) {
-        installBtn.style.display = 'block';
-      }
-    });
-
-    if (installBtn) {
-      installBtn.addEventListener('pointerdown', async e => {
-        e.preventDefault();
-        e.stopPropagation();
-        unlockAudio();
-        if (!deferredPrompt) return;
-        // 브라우저 설치 대화상자 표시
-        deferredPrompt.prompt();
-        // 사용자가 대화상자에 응답한 결과 대기
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`사용자 설치 선택 결과: ${outcome}`);
-        // 더 이상 prompt를 재사용할 수 없으므로 초기화
-        deferredPrompt = null;
-        installBtn.style.display = 'none';
-      });
-    }
-  }
+// 홈화면 바로가기 추가 안내 팝업 바인딩 (WebAPK 강제 설치 유도로 인한 플레이프로텍트 버그 근절)
+if (installBtn) {
+  installBtn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    unlockAudio();
+    document.getElementById('pwa-guide-overlay').style.display = 'flex';
+  });
 }
 
-// iOS 안내 팝업 닫기 버튼 이벤트
-addBtn('ios-install-close-btn', () => {
-  document.getElementById('ios-install-overlay').style.display = 'none';
+// 안내 팝업 닫기 버튼 이벤트
+addBtn('pwa-guide-close-btn', () => {
+  document.getElementById('pwa-guide-overlay').style.display = 'none';
 });
 
 // ── 랭킹 리스트 터치 스크롤 활성화 (p5 캔버스 이벤트 방해 방지) ──
