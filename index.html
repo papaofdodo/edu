@@ -7,6 +7,10 @@
 <meta name="theme-color" content="#7c3aed">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="우주수학탐험">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>🚀 우주 수학 탐험</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
@@ -86,6 +90,16 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 .save-btns{display:flex;gap:10px;justify-content:center}
 #save-confirm-btn{background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:18px;padding:12px 28px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;pointer-events:all}
 #save-cancel-btn{background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:18px;padding:12px 22px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;pointer-events:all}
+/* PWA 설치 버튼 스타일 */
+#pwa-install-btn{background:linear-gradient(135deg,#059669,#10b981);border:2px solid rgba(255,255,255,0.3);border-radius:28px;padding:14px 28px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:clamp(14px,3.5vw,17px);color:#fff;cursor:pointer;pointer-events:all;transition:transform(0.15s),box-shadow 0.15s;box-shadow:0 0 25px rgba(5,150,105,0.4);margin-top:16px;width:min(90vw,340px);text-align:center;font-weight:bold;animation:pulse-install 2s infinite}
+#pwa-install-btn:active{transform:scale(0.95)}
+@keyframes pulse-install{0%,100%{box-shadow:0 0 25px rgba(5,150,105,0.4)}50%{box-shadow:0 0 35px rgba(16,185,129,0.8)}}
+/* iOS 설치 모달 스타일 */
+#ios-install-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px)}
+#ios-install-panel{background:linear-gradient(145deg,#1e1b4b,#0f172a);border:2px solid rgba(160,100,255,0.5);border-radius:28px;padding:28px 24px;width:min(90vw,360px);color:#fff;text-align:center;box-shadow:0 0 60px rgba(120,60,255,0.4)}
+#ios-install-panel h3{font-size:20px;margin-bottom:12px;color:#ffd700;text-shadow:0 0 15px rgba(255,215,0,0.5)}
+#ios-install-panel p{font-size:14px;color:rgba(255,255,255,0.8);line-height:1.6;margin-bottom:20px;text-align:left}
+#ios-install-close-btn{background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:18px;padding:12px 24px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;width:100%}
 /* ENDING OVERLAY */
 #ending-overlay{position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,#1a0a00 0%,#000510 100%);flex-direction:column;padding:24px;text-align:center}
 #ending-overlay .end-emoji{font-size:clamp(70px,18vw,120px);animation:end-pulse 1.5s ease-in-out infinite alternate}
@@ -106,6 +120,22 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
     <button class="mode-select-btn" id="play-mode-btn">🎮 놀이 모드</button>
     <button class="mode-select-btn" id="rank-mode-btn">🏆 랭킹전</button>
     <button class="mode-select-btn" id="board-btn" style="background:rgba(255,215,0,0.15);border:2px solid rgba(255,215,0,0.5);margin-top:12px;color:#ffd700;font-size:18px;padding:12px 30px">📋 랭킹 게시판</button>
+    <!-- 홈 화면 추가 버튼 -->
+    <button id="pwa-install-btn" style="display:none">📱 홈 화면에 앱 설치하기</button>
+  </div>
+</div>
+
+<!-- iOS 사파리 홈 화면 추가 안내 모달 -->
+<div id="ios-install-overlay">
+  <div id="ios-install-panel">
+    <h3>📱 홈 화면에 앱 추가하기</h3>
+    <p>
+      바탕화면에 <strong>바로가기 앱 아이콘</strong>을 만들어 편하게 접속해 보아요!<br><br>
+      1. 아이폰 Safari 브라우저 하단의 <strong>공유 버튼</strong>(<span style="font-size:1.2em">📤</span>)을 눌러주세요.<br><br>
+      2. 메뉴에서 <strong>'홈 화면에 추가'</strong>(<span style="font-size:1.2em">➕</span>)를 선택해 주세요.<br><br>
+      3. 오른쪽 상단의 <strong>'추가'</strong>를 누르면 바탕화면에 예쁜 우주선 앱 아이콘이 바로 생성됩니다! 🚀
+    </p>
+    <button id="ios-install-close-btn">확인! 👍</button>
   </div>
 </div>
 <div id="question-banner" style="display:none"></div>
@@ -1176,6 +1206,74 @@ document.getElementById('player-name-input').addEventListener('keydown',e=>{if(e
   const introEl=document.getElementById('intro-screen');
   if(introEl) observer.observe(introEl,{attributes:true,attributeFilter:['style']});
 })();
+
+// ── PWA 홈화면 설치 유도 로직 ──
+let deferredPrompt = null;
+const installBtn = document.getElementById('pwa-install-btn');
+
+// 서비스 워커 등록
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('서비스 워커가 성공적으로 등록되었습니다. 범위:', reg.scope))
+      .catch(err => console.log('서비스 워커 등록 실패:', err));
+  });
+}
+
+// 1. 이미 홈 화면에 추가되어 앱처럼 켜진 상태(standalone)인지 확인
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+// 2. iOS 브라우저인지 감지
+const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+if (!isStandalone) {
+  if (isIos && isSafari) {
+    // iOS 사파리의 경우 브라우저 설치 팝업을 직접 띄울 수 없으므로 커스텀 가이드 모달 연결
+    if (installBtn) {
+      installBtn.style.display = 'block';
+      installBtn.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        unlockAudio();
+        document.getElementById('ios-install-overlay').style.display = 'flex';
+      });
+    }
+  } else {
+    // 안드로이드/크롬 등의 PWA 설치 이벤트 감지
+    window.addEventListener('beforeinstallprompt', e => {
+      // 기본 브라우저 배너 방지
+      e.preventDefault();
+      deferredPrompt = e;
+      // 설치 버튼 보여주기
+      if (installBtn) {
+        installBtn.style.display = 'block';
+      }
+    });
+
+    if (installBtn) {
+      installBtn.addEventListener('pointerdown', async e => {
+        e.preventDefault();
+        e.stopPropagation();
+        unlockAudio();
+        if (!deferredPrompt) return;
+        // 브라우저 설치 대화상자 표시
+        deferredPrompt.prompt();
+        // 사용자가 대화상자에 응답한 결과 대기
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`사용자 설치 선택 결과: ${outcome}`);
+        // 더 이상 prompt를 재사용할 수 없으므로 초기화
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
+      });
+    }
+  }
+}
+
+// iOS 안내 팝업 닫기 버튼 이벤트
+addBtn('ios-install-close-btn', () => {
+  document.getElementById('ios-install-overlay').style.display = 'none';
+});
 </script>
 </body>
 </html>
