@@ -18,9 +18,10 @@ html,body{touch-action:none;overscroll-behavior:none;-ms-touch-action:none}
 html,body{width:100%;height:100%;overflow:hidden;background:#000}
 canvas{display:block}
 body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
-#question-banner{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:rgba(30,10,60,0.85);backdrop-filter:blur(12px);border:3px solid rgba(200,150,255,0.8);border-radius:30px;padding:18px 40px;font-size:clamp(32px,8vw,56px);color:#fff;text-align:center;pointer-events:none;text-shadow:0 0 20px rgba(255,255,255,0.9);box-shadow:0 0 35px rgba(160,100,255,0.7),inset 0 0 15px rgba(160,100,255,0.4);white-space:nowrap;z-index:10;font-weight:bold}
-#message-box{position:fixed;bottom:120px;left:50%;transform:translateX(-50%);font-size:clamp(16px,4.5vw,26px);color:#fff;text-align:center;pointer-events:none;opacity:0;transition:opacity 0.4s;text-shadow:0 0 30px rgba(100,255,200,0.9);white-space:nowrap;z-index:10}
-#score-display{position:fixed;top:15px;right:15px;font-size:18px;color:rgba(255,255,255,0.9);pointer-events:none;z-index:10;text-shadow:0 0 10px rgba(255,215,0,0.5);font-weight:bold}
+    #question-banner{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:rgba(30,10,60,0.85);backdrop-filter:blur(12px);border:3px solid rgba(200,150,255,0.8);border-radius:30px;padding:18px 40px;font-size:clamp(32px,8vw,56px);color:#ffd700;text-align:center;pointer-events:none;text-shadow:0 0 20px rgba(255,255,255,0.9);box-shadow:0 0 35px rgba(160,100,255,0.7),inset 0 0 15px rgba(160,100,255,0.4);white-space:nowrap;z-index:10;font-weight:bold}
+#message-box{position:fixed;bottom:120px;left:50%;transform:translateX(-50%);font-size:clamp(16px,4.5vw,26px);color:#ffd700;text-align:center;pointer-events:none;opacity:0;transition:opacity 0.4s;text-shadow:0 0 30px rgba(100,255,200,0.9);white-space:nowrap;z-index:10}
+#score-display{position:fixed;top:15px;right:15px;font-size:18px;color:#ffd700;pointer-events:none;z-index:10;text-shadow:0 0 10px rgba(255,215,0,0.5);font-weight:bold}
+#score-display{position:fixed;top:15px;right:15px;font-size:18px;color:#ffffff;pointer-events:none;z-index:10;text-shadow:0 0 10px rgba(255,215,0,0.5);font-weight:bold}
 /* INTRO */
 #intro-screen{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 30%,#1a0a4a 0%,#0d0628 40%,#050015 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow:hidden}
     /* 인트로 별빛 우주 배경 애니메이션 */
@@ -28,8 +29,8 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
     #intro-screen>*:not(#intro-stars-canvas){position:relative;z-index:1}
 #intro-screen .rocket{font-size:clamp(60px,14vw,96px);animation:float 2.5s ease-in-out infinite}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
-#intro-screen h1{font-size:clamp(22px,5.5vw,38px);color:#fff;text-shadow:0 0 30px #a06aff;text-align:center;margin:14px 0 10px}
-#intro-screen p{font-size:clamp(13px,3.5vw,20px);color:rgba(255,255,255,0.85);text-align:center;line-height:1.7;max-width:460px}
+    #intro-screen h1{font-size:clamp(22px,5.5vw,38px);background:linear-gradient(135deg,#a06aff,#ff6fff);-webkit-background-clip:text;color:transparent;text-shadow:0 0 30px #a06aff;text-align:center;margin:14px 0 10px}
+#intro-screen p{font-size:clamp(13px,3.5vw,20px);background:linear-gradient(135deg,#a06aff,#ff6fff);-webkit-background-clip:text;color:transparent;text-align:center;line-height:1.7;max-width:460px}
 /* MODE SELECT */
 .mode-select-btns{display:flex;gap:16px;margin-top:28px;flex-wrap:wrap;justify-content:center}
 .mode-select-btn{border:none;border-radius:28px;padding:18px 36px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:clamp(17px,4vw,24px);color:#fff;cursor:pointer;pointer-events:all;transition:transform 0.15s,box-shadow 0.15s;box-shadow:0 0 30px rgba(0,0,0,0.4)}
