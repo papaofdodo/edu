@@ -101,6 +101,27 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 #ios-install-panel h3{font-size:20px;margin-bottom:12px;color:#ffd700;text-shadow:0 0 15px rgba(255,215,0,0.5)}
 #ios-install-panel p{font-size:14px;color:rgba(255,255,255,0.8);line-height:1.6;margin-bottom:20px;text-align:left}
 #ios-install-close-btn{background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:18px;padding:12px 24px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;width:100%}
+/* 랭킹 스크롤 버튼 스타일 */
+.rank-scroll-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  color: #ffd700;
+  padding: 8px 0;
+  font-family: 'Arial Rounded MT Bold', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  pointer-events: all;
+  width: 100%;
+  margin: 4px 0;
+  transition: background 0.15s, transform 0.1s;
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+.rank-scroll-btn:active {
+  background: rgba(255, 215, 0, 0.25);
+  transform: scale(0.98);
+}
 /* ENDING OVERLAY */
 #ending-overlay{position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,#1a0a00 0%,#000510 100%);flex-direction:column;padding:24px;text-align:center}
 #ending-overlay .end-emoji{font-size:clamp(70px,18vw,120px);animation:end-pulse 1.5s ease-in-out infinite alternate}
@@ -173,9 +194,16 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 <div id="rank-overlay">
   <div id="rank-panel">
     <h3>🏆 최고 기록</h3>
+    <!-- 위로 보기 버튼 -->
+    <button class="rank-scroll-btn" id="rank-scroll-up-btn">▲ 위로 보기</button>
+    
     <div class="rank-list-wrapper">
       <ul class="rank-list" id="rank-list"><li style="color:rgba(255,255,255,0.4);padding:20px">불러오는 중...</li></ul>
     </div>
+    
+    <!-- 아래로 보기 버튼 -->
+    <button class="rank-scroll-btn" id="rank-scroll-down-btn">▼ 아래로 보기 (기록 더 보기)</button>
+    
     <div class="rank-btns">
       <button class="rank-btn-action" id="rank-save-btn">💾 내 기록 저장</button>
       <button class="rank-btn-action" id="rank-back-btn" style="background:rgba(255,255,255,0.1)">⬅️ 뒤로가기</button>
@@ -1292,6 +1320,58 @@ addBtn('ios-install-close-btn', () => {
   // 모바일/태블릿 터치 스크롤 안정성 보강
   wrapper.style.overflowY = 'auto';
   wrapper.style.webkitOverflowScrolling = 'touch';
+})();
+
+// ── 랭킹 스크롤 버튼 물리 조작 스크립트 (꾹 누르기 지원) ──
+(function initScrollButtons(){
+  const wrapper = document.querySelector('.rank-list-wrapper');
+  const upBtn = document.getElementById('rank-scroll-up-btn');
+  const downBtn = document.getElementById('rank-scroll-down-btn');
+  if(!wrapper || !upBtn || !downBtn) return;
+  
+  let scrollInterval = null;
+  
+  function startScroll(dir) {
+    if(scrollInterval) clearInterval(scrollInterval);
+    
+    // 즉시 조금 이동
+    wrapper.scrollBy({ top: dir * 45, behavior: 'smooth' });
+    
+    // 꾹 누르고 있을 때 연속 스크롤
+    scrollInterval = setInterval(() => {
+      wrapper.scrollBy({ top: dir * 15, behavior: 'auto' });
+    }, 35);
+  }
+  
+  function stopScroll(){
+    if(scrollInterval) {
+      clearInterval(scrollInterval);
+      scrollInterval = null;
+    }
+  }
+  
+  // 위로 보기 버튼 바인딩
+  upBtn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    unlockAudio();
+    startScroll(-1);
+  });
+  
+  // 아래로 보기 버튼 바인딩
+  downBtn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    unlockAudio();
+    startScroll(1);
+  });
+  
+  // 손을 떼거나 마우스가 벗어날 때 멈춤 처리
+  const releaseEvents = ['pointerup', 'pointercancel', 'pointerout', 'pointerleave', 'touchend', 'mouseup'];
+  releaseEvents.forEach(evt => {
+    upBtn.addEventListener(evt, stopScroll);
+    downBtn.addEventListener(evt, stopScroll);
+  });
 })();
 </script>
 </body>
