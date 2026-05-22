@@ -1,6 +1,5 @@
-const CACHE_NAME = 'math-lab-v9';
+const CACHE_NAME = 'math-lab-v10';
 const ASSETS = [
-  './manifest.json',
   './icon-192.png',
   './icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js',
@@ -63,13 +62,14 @@ self.addEventListener('fetch', e => {
   const isNavigation = e.request.mode === 'navigate';
   const isAppShell = url.pathname.endsWith('/') || url.pathname.endsWith('/index.html');
   const isRankingData = url.pathname.endsWith('/rankings.json');
+  const isManifest = url.pathname.endsWith('/manifest.json');
 
   if (isNavigation || isAppShell) {
     e.respondWith(networkFirst(e.request, './index.html'));
     return;
   }
 
-  if (isRankingData) {
+  if (isRankingData || isManifest) {
     e.respondWith(networkFirst(e.request));
     return;
   }
