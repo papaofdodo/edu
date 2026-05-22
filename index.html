@@ -745,8 +745,9 @@ function showMessage(text,type='info'){
   if(type==='correct') el.classList.add('message-correct');
   if(type==='wrong') el.classList.add('message-wrong');
   el.textContent=text; el.style.opacity='1';
+  const duration=type==='correct'?8500:(type==='wrong'?4500:3000);
   if(msgTimer) clearTimeout(msgTimer);
-  msgTimer=setTimeout(()=>{el.style.opacity='0';},2200);
+  msgTimer=setTimeout(()=>{el.style.opacity='0';},duration);
 }
 function burst(x,y,count,success){for(let i=0;i<count;i++) particles.push(new Particle(x,y,success));}
 
