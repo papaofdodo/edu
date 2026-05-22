@@ -18,8 +18,11 @@ html,body{touch-action:none;overscroll-behavior:none;-ms-touch-action:none}
 html,body{width:100%;height:100%;overflow:hidden;background:#000}
 canvas{display:block}
 body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
-    #question-banner{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:rgba(30,10,60,0.85);backdrop-filter:blur(12px);border:3px solid rgba(200,150,255,0.8);border-radius:30px;padding:18px 40px;font-size:clamp(32px,8vw,56px);color:#ffd700;text-align:center;pointer-events:none;text-shadow:0 0 20px rgba(255,255,255,0.9);box-shadow:0 0 35px rgba(160,100,255,0.7),inset 0 0 15px rgba(160,100,255,0.4);white-space:nowrap;z-index:10;font-weight:bold}
-#message-box{position:fixed;bottom:120px;left:50%;transform:translateX(-50%);font-size:clamp(16px,4.5vw,26px);color:#ffd700;text-align:center;pointer-events:none;opacity:0;transition:opacity 0.4s;text-shadow:0 0 30px rgba(100,255,200,0.9);white-space:nowrap;z-index:10}
+    #question-banner{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,rgba(27,16,72,0.9),rgba(18,62,104,0.78));backdrop-filter:blur(12px);border:3px solid rgba(198,240,255,0.86);border-radius:30px;padding:18px 40px;font-size:clamp(32px,8vw,56px);color:#fff7b8;text-align:center;pointer-events:none;text-shadow:0 0 8px rgba(255,255,255,0.95),0 0 18px rgba(125,211,252,0.9),0 0 34px rgba(250,204,21,0.6);box-shadow:0 0 22px rgba(125,211,252,0.75),0 0 42px rgba(250,204,21,0.28),inset 0 0 18px rgba(255,255,255,0.18);white-space:nowrap;z-index:10;font-weight:bold}
+#message-box{position:fixed;bottom:120px;left:50%;transform:translateX(-50%);font-size:clamp(17px,4.8vw,28px);color:#fff6b3;text-align:center;pointer-events:none;opacity:0;transition:opacity 0.25s;text-shadow:0 0 8px rgba(255,255,255,0.95),0 0 18px rgba(251,191,36,0.85),0 0 34px rgba(125,211,252,0.75);white-space:nowrap;z-index:10;font-weight:bold}
+#message-box.message-correct{animation:message-twinkle 0.9s ease-out}
+#message-box.message-wrong{color:#ffe4a3;text-shadow:0 0 8px rgba(255,255,255,0.8),0 0 18px rgba(251,191,36,0.65)}
+@keyframes message-twinkle{0%{transform:translateX(-50%) scale(0.96);filter:brightness(1)}35%{transform:translateX(-50%) scale(1.06);filter:brightness(1.55)}65%{transform:translateX(-50%) scale(1.01);filter:brightness(1.25)}100%{transform:translateX(-50%) scale(1);filter:brightness(1)}}
 #score-display{position:fixed;top:15px;right:15px;font-size:18px;color:#ffffff;pointer-events:none;z-index:10;text-shadow:0 0 10px rgba(255,215,0,0.5);font-weight:bold}
 /* INTRO */
 #intro-screen{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 30%,#1a0a4a 0%,#0d0628 40%,#050015 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow:hidden}
@@ -732,8 +735,12 @@ function setupLevel(p){
 
 // ── MESSAGE HELPER ──
 let msgTimer=null;
-function showMessage(text){
+function showMessage(text,type='info'){
   const el=document.getElementById('message-box');
+  el.classList.remove('message-correct','message-wrong');
+  void el.offsetWidth;
+  if(type==='correct') el.classList.add('message-correct');
+  if(type==='wrong') el.classList.add('message-wrong');
   el.textContent=text; el.style.opacity='1';
   if(msgTimer) clearTimeout(msgTimer);
   msgTimer=setTimeout(()=>{el.style.opacity='0';},2200);
@@ -879,7 +886,7 @@ function handleCorrect(o,p,setSlowMo){
     '마음 근육이 훨씬 튼튼해졌어! 🏋️‍♂️',
     '너의 멋진 도전을 항상 응원할게! 📣'
   ];
-  showMessage(praise[Math.floor(Math.random()*praise.length)]);
+  showMessage(praise[Math.floor(Math.random()*praise.length)],'correct');
   const isMilestone=MILESTONES.some(x=>x.at===score);
   if(isMilestone){
     setTimeout(()=>{
@@ -902,7 +909,7 @@ function handleWrong(o){
     '아쉽지만 다음엔 할 수 있어! 💨',
     '조금 어려울 수도 있어, 천천히 해봐! 🐢'
   ];
-  showMessage(cheer[Math.floor(Math.random()*cheer.length)]);
+  showMessage(cheer[Math.floor(Math.random()*cheer.length)],'wrong');
   if(currentMode==='rank'){
     lives--; updateLivesDisplay();
     if(lives<=0){
@@ -1352,9 +1359,19 @@ const installBtn = document.getElementById('pwa-install-btn');
 
 // 서비스 워커 등록 (캐싱 유지)
 if ('serviceWorker' in navigator) {
+  let refreshingForUpdate = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshingForUpdate || !navigator.serviceWorker.controller) return;
+    refreshingForUpdate = true;
+    window.location.reload();
+  });
+
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('서비스 워커가 성공적으로 등록되었습니다. 범위:', reg.scope))
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+      .then(reg => {
+        console.log('서비스 워커가 성공적으로 등록되었습니다. 범위:', reg.scope);
+        reg.update().catch(() => {});
+      })
       .catch(err => console.log('서비스 워커 등록 실패:', err));
   });
 }

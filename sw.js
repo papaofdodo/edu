@@ -1,10 +1,6 @@
-const CACHE_NAME = 'math-lab-v4';
+const CACHE_NAME = 'math-lab-v6';
 const ASSETS = [
-  './',
-  './index.html',
   './manifest.json',
-  './rankings.json',
-  './supabase-rankings.sql',
   './icon-192.png',
   './icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js',
@@ -29,22 +25,54 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// 요청 가로채기: 캐시 우선 전략
+async function networkFirst(request, fallbackUrl) {
+  try {
+    const res = await fetch(request);
+    if (res && res.status === 200) {
+      const clone = res.clone();
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, clone);
+    }
+    return res;
+  } catch (e) {
+    const cached = await caches.match(request);
+    return cached || (fallbackUrl ? caches.match(fallbackUrl) : undefined);
+  }
+}
+
+async function cacheFirst(request) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
+  const res = await fetch(request);
+  if (res && res.status === 200) {
+    const clone = res.clone();
+    const cache = await caches.open(CACHE_NAME);
+    cache.put(request, clone);
+  }
+  return res;
+}
+
+// 요청 가로채기: HTML/랭킹은 네트워크 우선, 정적 리소스는 캐시 우선
 self.addEventListener('fetch', e => {
   // 오디오(.mp3) 파일은 iOS Safari의 Range Request 호환성을 위해 서비스 워커에서 가로채지 않고 직접 네트워크로 요청하게 합니다.
   if (e.request.url.endsWith('.mp3') || e.request.url.includes('bgm')) {
     return;
   }
 
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(res => {
-        if (!res || res.status !== 200) return res;
-        const clone = res.clone();
-        caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
-        return res;
-      }).catch(() => caches.match('./index.html'));
-    })
-  );
+  const url = new URL(e.request.url);
+  const isNavigation = e.request.mode === 'navigate';
+  const isAppShell = url.pathname.endsWith('/') || url.pathname.endsWith('/index.html');
+  const isRankingData = url.pathname.endsWith('/rankings.json');
+
+  if (isNavigation || isAppShell) {
+    e.respondWith(networkFirst(e.request, './index.html'));
+    return;
+  }
+
+  if (isRankingData) {
+    e.respondWith(networkFirst(e.request));
+    return;
+  }
+
+  e.respondWith(cacheFirst(e.request));
 });
