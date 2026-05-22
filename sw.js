@@ -1,11 +1,14 @@
-const CACHE_NAME = 'math-lab-v1';
+const CACHE_NAME = 'math-lab-v4';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './rankings.json',
+  './supabase-rankings.sql',
   './icon-192.png',
   './icon-512.png',
-  'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js',
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
 ];
 
 // 설치: 모든 파일을 캐시에 저장
