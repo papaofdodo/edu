@@ -159,7 +159,7 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
     <div class="mode-secondary-actions">
       <button class="mode-select-btn mode-secondary" id="board-btn">📋 랭킹 게시판</button>
       <button id="app-info-btn" class="mode-select-btn mode-secondary">📱 앱 정보</button>
-      <button id="pwa-install-btn" class="mode-select-btn mode-secondary">바로가기 안내</button>
+      <button id="pwa-install-btn" class="mode-select-btn mode-secondary">앱 설치</button>
     </div>
   </div>
   <!-- 최근 업데이트 일자 표기 (절대 좌표 대신 마진 배치로 변경하여 화면 잘림 현상 방지) -->
@@ -168,11 +168,11 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
   </div>
 </div>
 
-<!-- 통합 홈 화면 추가 안내 모달 -->
+<!-- 통합 앱 설치 안내 모달 -->
 <div id="pwa-guide-overlay">
   <div id="pwa-guide-panel">
-    <h3>📱 홈 화면에 바로가기 추가</h3>
-    <p>
+    <h3 id="pwa-guide-title">📱 앱 설치 안내</h3>
+    <p id="pwa-guide-text">
       매번 주소를 입력하지 않고, 바탕화면에 안전한 앱 아이콘 바로가기를 만들어 보아요! 🚀<br><br>
       
       <strong>🤖 안드로이드 (크롬 / 삼성인터넷)</strong><br>
@@ -185,6 +185,10 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
       
       <span style="color:#ffd700">★ 브라우저 기본 기능이므로 경고 메시지가 전혀 없으며 100% 안전하게 아이콘이 생성됩니다! ⭐</span>
     </p>
+    <div id="pwa-browser-actions" style="display:none;gap:10px;margin-bottom:12px">
+      <button id="open-chrome-btn" style="flex:1;background:linear-gradient(135deg,#0369a1,#0284c7);border:none;border-radius:18px;padding:12px 10px;color:#fff;font-family:'Arial Rounded MT Bold',sans-serif;font-size:14px;font-weight:bold;cursor:pointer">크롬으로 열기</button>
+      <button id="open-samsung-btn" style="flex:1;background:linear-gradient(135deg,#1d4ed8,#7c3aed);border:none;border-radius:18px;padding:12px 10px;color:#fff;font-family:'Arial Rounded MT Bold',sans-serif;font-size:14px;font-weight:bold;cursor:pointer">삼성인터넷</button>
+    </div>
     <button id="pwa-guide-close-btn">확인! 👍</button>
   </div>
 </div>
@@ -1356,6 +1360,69 @@ document.getElementById('player-name-input').addEventListener('keydown',e=>{if(e
 
 // ── PWA 홈화면 설치 유도 로직 ──
 const installBtn = document.getElementById('pwa-install-btn');
+let deferredInstallPrompt=null;
+
+function isStandaloneMode(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function isAndroid(){
+  return /Android/i.test(navigator.userAgent);
+}
+
+function isKakaoTalk(){
+  return /KAKAOTALK/i.test(navigator.userAgent);
+}
+
+function appUrl(){
+  return window.location.href.split('#')[0];
+}
+
+function openAndroidBrowser(packageName){
+  const url=new URL(appUrl());
+  const path=url.host+url.pathname+url.search;
+  const fallback=encodeURIComponent(appUrl());
+  window.location.href=`intent://${path}#Intent;scheme=${url.protocol.replace(':','')};package=${packageName};S.browser_fallback_url=${fallback};end`;
+}
+
+function showInstallGuide(mode='manual'){
+  const overlay=document.getElementById('pwa-guide-overlay');
+  const title=document.getElementById('pwa-guide-title');
+  const text=document.getElementById('pwa-guide-text');
+  const actions=document.getElementById('pwa-browser-actions');
+
+  if(mode==='kakao'){
+    title.textContent='📱 브라우저에서 앱 설치하기';
+    text.innerHTML='카카오톡 안에서는 웹앱 설치 버튼이 막힐 수 있어요.<br>아래 버튼으로 크롬이나 삼성인터넷에서 연 뒤, 다시 <strong>앱 설치</strong>를 눌러주세요. 🚀<br><br><span style="color:#ffd700">한 번 설치하면 다음부터는 홈 화면 아이콘으로 바로 열 수 있어요.</span>';
+    actions.style.display='flex';
+  } else if(mode==='unsupported'){
+    title.textContent='📱 홈 화면에 바로가기 추가';
+    text.innerHTML='이 브라우저에서는 자동 설치 팝업을 띄울 수 없어요.<br><br><strong>안드로이드</strong>: 크롬/삼성인터넷 메뉴에서 <strong>홈 화면에 추가</strong> 또는 <strong>웹앱으로 설치</strong>를 선택해 주세요.<br><br><strong>아이폰</strong>: Safari 공유 버튼에서 <strong>홈 화면에 추가</strong>를 선택해 주세요.';
+    actions.style.display=isAndroid()?'flex':'none';
+  } else {
+    title.textContent='📱 홈 화면에 바로가기 추가';
+    text.innerHTML='매번 주소를 입력하지 않고, 바탕화면에 안전한 앱 아이콘 바로가기를 만들어 보아요! 🚀<br><br><strong>🤖 안드로이드 (크롬 / 삼성인터넷)</strong><br>브라우저 메뉴에서 <strong>홈 화면에 추가</strong> 또는 <strong>웹앱으로 설치</strong>를 선택해 주세요.<br><br><strong>🍎 아이폰 (Safari)</strong><br>공유 버튼을 누른 뒤 <strong>홈 화면에 추가</strong>를 선택해 주세요.<br><br><span style="color:#ffd700">★ 브라우저 기본 기능이므로 안전하게 아이콘이 생성됩니다! ⭐</span>';
+    actions.style.display='none';
+  }
+
+  overlay.style.display='flex';
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  if(installBtn) installBtn.textContent='앱 설치';
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt=null;
+  if(installBtn) installBtn.style.display='none';
+  showMessage('📱 앱 설치가 완료됐어요!');
+});
+
+if(isStandaloneMode() && installBtn){
+  installBtn.style.display='none';
+}
 
 // 서비스 워커 등록 (캐싱 유지)
 if ('serviceWorker' in navigator) {
@@ -1396,13 +1463,34 @@ if (appInfoClose) {
   });
 }
 if (installBtn) {
-  installBtn.addEventListener('pointerdown', e => {
+  installBtn.addEventListener('pointerdown', async e => {
     e.preventDefault();
     e.stopPropagation();
     unlockAudio();
-    document.getElementById('pwa-guide-overlay').style.display = 'flex';
+
+    if(isStandaloneMode()){
+      showMessage('이미 앱으로 실행 중이에요! ✨');
+      return;
+    }
+
+    if(deferredInstallPrompt){
+      deferredInstallPrompt.prompt();
+      try{ await deferredInstallPrompt.userChoice; }catch(err){}
+      deferredInstallPrompt=null;
+      return;
+    }
+
+    if(isKakaoTalk()){
+      showInstallGuide('kakao');
+      return;
+    }
+
+    showInstallGuide('unsupported');
   });
 }
+
+addBtn('open-chrome-btn',()=>openAndroidBrowser('com.android.chrome'));
+addBtn('open-samsung-btn',()=>openAndroidBrowser('com.sec.android.app.sbrowser'));
 
 // 안내 팝업 닫기 버튼 이벤트
 addBtn('pwa-guide-close-btn', () => {
