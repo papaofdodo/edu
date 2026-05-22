@@ -1,4 +1,4 @@
-const CACHE_NAME = 'math-lab-v7';
+const CACHE_NAME = 'math-lab-v9';
 const ASSETS = [
   './manifest.json',
   './icon-192.png',
