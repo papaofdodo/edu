@@ -163,8 +163,8 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
     </div>
   </div>
   <!-- 최근 업데이트 일자 표기 (절대 좌표 대신 마진 배치로 변경하여 화면 잘림 현상 방지) -->
-  <div style="margin-top:20px;margin-bottom:10px;font-size:11px;color:rgba(255,255,255,0.45);font-family:sans-serif;pointer-events:none;text-align:center;width:100%;letter-spacing:0.5px;z-index:2">
-    최근 업데이트: 2026년 05월 22일 12시 00분 19초
+  <div id="last-updated" style="margin-top:20px;margin-bottom:10px;font-size:11px;color:rgba(255,255,255,0.45);font-family:sans-serif;pointer-events:none;text-align:center;width:100%;letter-spacing:0.5px;z-index:2">
+    최근 업데이트 확인 중...
   </div>
 </div>
 
@@ -279,6 +279,22 @@ let currentMode=''; // 'play' or 'rank'
 let playDiff=1, playOp='add';
 let audioCtx=null;
 const PENTA=[523.25,587.33,659.25,783.99,880.00,1046.50,1174.66,1318.51];
+
+function updateLastUpdatedText(){
+  const el=document.getElementById('last-updated');
+  if(!el) return;
+
+  const modified=new Date(document.lastModified);
+  if(Number.isNaN(modified.getTime())){
+    el.textContent='최근 업데이트: 확인 불가';
+    return;
+  }
+
+  const pad=n=>String(n).padStart(2,'0');
+  el.textContent=`최근 업데이트: ${modified.getFullYear()}년 ${pad(modified.getMonth()+1)}월 ${pad(modified.getDate())}일 ${pad(modified.getHours())}시 ${pad(modified.getMinutes())}분 ${pad(modified.getSeconds())}초`;
+}
+
+updateLastUpdatedText();
 
 // ── RANK MODE: auto difficulty ──
 function getRankDiffConfig(s) {
