@@ -57,6 +57,19 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
   .mode-primary{min-height:64px}
   .mode-secondary{min-height:46px;padding:9px 5px;font-size:clamp(11px,2.8vw,13px)}
 }
+@media (orientation:landscape) and (max-height:500px){
+  #intro-screen{justify-content:center;padding:12px 18px}
+  #intro-screen .rocket{display:none}
+  #intro-screen h1{font-size:clamp(26px,5.2vw,34px);margin:0 0 6px}
+  #intro-screen p{font-size:clamp(12px,2.7vw,16px);line-height:1.35;max-width:520px}
+  .mode-select-btns{width:min(72vw,520px);gap:8px;margin-top:12px}
+  .mode-primary-actions{gap:8px}
+  .mode-secondary-actions{gap:8px}
+  .mode-select-btn{border-radius:14px;padding:8px 8px;min-height:40px}
+  .mode-primary{min-height:48px;font-size:clamp(15px,3vw,20px)}
+  .mode-secondary{min-height:34px;padding:6px 6px;font-size:clamp(10px,2.2vw,12px)}
+  #last-updated{margin-top:8px !important;margin-bottom:0 !important;font-size:10px !important}
+}
 /* TOP BUTTONS */
 #back-btn,#rank-open-btn{position:fixed;top:15px;border-radius:20px;padding:8px 16px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;pointer-events:all;backdrop-filter:blur(8px);transition:background 0.2s;z-index:20;display:none}
 #back-btn{left:15px;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3)}
@@ -778,6 +791,7 @@ new p5(function(p){
   let bgStars=[], slowMoFactor=1, slowMoTimer=0;
 
   p.setup=function(){
+    p.pixelDensity(Math.min(window.devicePixelRatio||1,2));
     const cnv=p.createCanvas(window.innerWidth,window.innerHeight);
     cnv.parent(document.body);
     p.textFont('Arial'); p.frameRate(60);
@@ -786,25 +800,61 @@ new p5(function(p){
     el.style.touchAction='none';
     el.style.userSelect='none';
     el.style.webkitUserSelect='none';
-    // Pointer Events로 통일 (mouse/touch/pen/iPad 모두 즉각 처리)
-    el.addEventListener('pointerdown',e=>{
-      e.preventDefault();
-      el.setPointerCapture(e.pointerId);
-      unlockAudio();
-      onPress(e.clientX,e.clientY);
-    },{passive:false});
-    el.addEventListener('pointermove',e=>{
-      e.preventDefault();
-      if(e.buttons>0||e.pressure>0) onMove(e.clientX,e.clientY);
-    },{passive:false});
-    el.addEventListener('pointerup',e=>{
-      e.preventDefault();
-      onRelease();
-    },{passive:false});
-    el.addEventListener('pointercancel',e=>{
-      e.preventDefault();
-      onRelease();
-    },{passive:false});
+    // Pointer Events 우선, 구형 모바일 브라우저는 touch/mouse 이벤트로 보완
+    if(window.PointerEvent){
+      el.addEventListener('pointerdown',e=>{
+        e.preventDefault();
+        el.setPointerCapture(e.pointerId);
+        unlockAudio();
+        onPress(e.clientX,e.clientY);
+      },{passive:false});
+      el.addEventListener('pointermove',e=>{
+        e.preventDefault();
+        if(e.buttons>0||e.pressure>0) onMove(e.clientX,e.clientY);
+      },{passive:false});
+      el.addEventListener('pointerup',e=>{
+        e.preventDefault();
+        onRelease();
+      },{passive:false});
+      el.addEventListener('pointercancel',e=>{
+        e.preventDefault();
+        onRelease();
+      },{passive:false});
+    }else{
+      el.addEventListener('touchstart',e=>{
+        e.preventDefault();
+        const t=e.changedTouches[0];
+        if(!t) return;
+        unlockAudio();
+        onPress(t.clientX,t.clientY);
+      },{passive:false});
+      el.addEventListener('touchmove',e=>{
+        e.preventDefault();
+        const t=e.changedTouches[0];
+        if(t) onMove(t.clientX,t.clientY);
+      },{passive:false});
+      el.addEventListener('touchend',e=>{
+        e.preventDefault();
+        onRelease();
+      },{passive:false});
+      el.addEventListener('touchcancel',e=>{
+        e.preventDefault();
+        onRelease();
+      },{passive:false});
+      el.addEventListener('mousedown',e=>{
+        e.preventDefault();
+        unlockAudio();
+        onPress(e.clientX,e.clientY);
+      },{passive:false});
+      el.addEventListener('mousemove',e=>{
+        e.preventDefault();
+        if(e.buttons>0) onMove(e.clientX,e.clientY);
+      },{passive:false});
+      el.addEventListener('mouseup',e=>{
+        e.preventDefault();
+        onRelease();
+      },{passive:false});
+    }
     // 핀치줌/제스처 차단 (iPad Safari)
     el.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
     el.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
@@ -1280,8 +1330,9 @@ document.getElementById('player-name-input').addEventListener('keydown',e=>{if(e
   resize();
   window.addEventListener('resize',resize);
 
-  // 작고 반짝이는 별 200개 생성
-  for(let i=0;i<200;i++){
+  // 작고 반짝이는 별 생성
+  const starCount=Math.min(200,Math.max(110,Math.floor((canvas.width*canvas.height)/1800)));
+  for(let i=0;i<starCount;i++){
     stars.push({
       x:Math.random()*canvas.width,
       y:Math.random()*canvas.height,
