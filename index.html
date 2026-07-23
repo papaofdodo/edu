@@ -386,18 +386,18 @@ function updateLivesDisplay(){
 const bgmAudio = new Audio();
 bgmAudio.loop = false;
 
-let currentBgmIndex = 1;      // 1 ~ 6
+let currentBgmIndex = 1;      // 1 ~ 8
 let useSynthBGM = false;      // mp3 로딩 실패 시 true
 let synthIntervalId = null;   // 합성 BGM 타이머 ID
 let synthBGMGain = null;      // 합성 BGM 메인 게인 노드
 let bgmLoadFails = 0;
-const BGM_TOTAL = 6;
+const BGM_TOTAL = 8;
 let isAudioUnlocked = false;  // 사용자 터치를 통해 오디오가 해제되었는지 여부
 
 // 단일 오디오 객체에 이벤트 리스너 설정
 bgmAudio.addEventListener('ended', () => {
   if (gameStarted && !useSynthBGM) {
-    currentBgmIndex = (currentBgmIndex % BGM_TOTAL) + 1; // 1 -> 2 -> ... -> 6 -> 1
+    currentBgmIndex = (currentBgmIndex % BGM_TOTAL) + 1; // 1 -> 2 -> ... -> 8 -> 1
     playNextBGM();
   }
 });
