@@ -386,32 +386,29 @@ function updateLivesDisplay(){
 const bgmAudio = new Audio();
 bgmAudio.loop = false;
 
-let currentBgmIndex = 1;      // 1 ~ 8
+let currentBgmIndex = 1;      // bgm1.mp3부터 번호순으로 자동 재생
 let useSynthBGM = false;      // mp3 로딩 실패 시 true
 let synthIntervalId = null;   // 합성 BGM 타이머 ID
 let synthBGMGain = null;      // 합성 BGM 메인 게인 노드
-let bgmLoadFails = 0;
-const BGM_TOTAL = 8;
 let isAudioUnlocked = false;  // 사용자 터치를 통해 오디오가 해제되었는지 여부
 
 // 단일 오디오 객체에 이벤트 리스너 설정
 bgmAudio.addEventListener('ended', () => {
   if (gameStarted && !useSynthBGM) {
-    currentBgmIndex = (currentBgmIndex % BGM_TOTAL) + 1; // 1 -> 2 -> ... -> 8 -> 1
+    currentBgmIndex++;
     playNextBGM();
   }
 });
 
 bgmAudio.addEventListener('error', (e) => {
   console.warn(`bgm${currentBgmIndex}.mp3 로드 실패:`, e);
-  bgmLoadFails++;
-  if (bgmLoadFails >= BGM_TOTAL) {
+  if (currentBgmIndex === 1) {
     useSynthBGM = true;
-    console.log('모든 BGM mp3 재생 불가 - 맑고 경쾌한 우주 오르골 배경음으로 전환합니다.');
+    console.log('bgm1.mp3 재생 불가 - 맑고 경쾌한 우주 오르골 배경음으로 전환합니다.');
     if (gameStarted) startSynthBGM();
   } else {
-    // 다음 곡 시도
-    currentBgmIndex = (currentBgmIndex % BGM_TOTAL) + 1;
+    // 다음 번호의 파일이 없으면 현재 목록의 끝으로 보고 첫 곡부터 다시 재생
+    currentBgmIndex = 1;
     if (gameStarted) playNextBGM();
   }
 });
