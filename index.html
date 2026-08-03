@@ -9,23 +9,28 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="도도의 숫자놀이">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="manifest.json?v=20260522-120019">
+<link rel="manifest" href="manifest.json?v=20260803-responsive">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>🚀 도도의 숫자놀이</title>
 <style>
+:root{--safe-top:0px;--safe-right:0px;--safe-bottom:0px;--safe-left:0px}
+@supports (padding-top:env(safe-area-inset-top)){
+  :root{--safe-top:env(safe-area-inset-top);--safe-right:env(safe-area-inset-right);--safe-bottom:env(safe-area-inset-bottom);--safe-left:env(safe-area-inset-left)}
+}
 *{margin:0;padding:0;box-sizing:border-box;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 html,body{touch-action:none;overscroll-behavior:none;-ms-touch-action:none}
-html,body{width:100%;height:100%;overflow:hidden;background:#000}
+html,body{width:100%;height:100%;min-height:100%;overflow:hidden;background:#000}
+@supports (height:100dvh){html,body{height:100dvh;min-height:100dvh}}
 canvas{display:block}
 body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
-    #question-banner{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:rgba(22,15,58,0.9);backdrop-filter:blur(8px);border:3px solid rgba(255,255,255,0.72);border-radius:30px;padding:18px 40px;font-size:clamp(32px,8vw,56px);color:#fff3a3;text-align:center;pointer-events:none;text-shadow:none;box-shadow:0 8px 24px rgba(0,0,0,0.35);white-space:nowrap;z-index:10;font-weight:bold}
-#message-box{position:fixed;bottom:120px;left:50%;transform:translateX(-50%);font-size:clamp(17px,4.8vw,28px);color:#fff6b3;text-align:center;pointer-events:none;opacity:0;transition:opacity 0.25s;text-shadow:0 0 8px rgba(255,255,255,0.95),0 0 18px rgba(251,191,36,0.85),0 0 34px rgba(125,211,252,0.75);white-space:nowrap;z-index:10;font-weight:bold}
+    #question-banner{position:fixed;top:calc(80px + var(--safe-top));left:50%;transform:translateX(-50%);background:rgba(22,15,58,0.9);backdrop-filter:blur(8px);border:3px solid rgba(255,255,255,0.72);border-radius:30px;padding:18px 40px;font-size:clamp(32px,8vw,56px);color:#fff3a3;text-align:center;pointer-events:none;text-shadow:none;box-shadow:0 8px 24px rgba(0,0,0,0.35);white-space:nowrap;z-index:10;font-weight:bold}
+#message-box{position:fixed;bottom:calc(120px + var(--safe-bottom));left:50%;transform:translateX(-50%);font-size:clamp(17px,4.8vw,28px);color:#fff6b3;text-align:center;pointer-events:none;opacity:0;transition:opacity 0.25s;text-shadow:0 0 8px rgba(255,255,255,0.95),0 0 18px rgba(251,191,36,0.85),0 0 34px rgba(125,211,252,0.75);white-space:nowrap;z-index:10;font-weight:bold}
 #message-box.message-correct{animation:message-twinkle 0.9s ease-out}
 #message-box.message-wrong{color:#ffe4a3;text-shadow:0 0 8px rgba(255,255,255,0.8),0 0 18px rgba(251,191,36,0.65)}
 @keyframes message-twinkle{0%{transform:translateX(-50%) scale(0.96);filter:brightness(1)}35%{transform:translateX(-50%) scale(1.06);filter:brightness(1.55)}65%{transform:translateX(-50%) scale(1.01);filter:brightness(1.25)}100%{transform:translateX(-50%) scale(1);filter:brightness(1)}}
-#score-display{position:fixed;top:15px;right:15px;font-size:18px;color:#ffffff;pointer-events:none;z-index:10;text-shadow:0 0 10px rgba(255,215,0,0.5);font-weight:bold}
+#score-display{position:fixed;top:calc(15px + var(--safe-top));right:calc(15px + var(--safe-right));font-size:18px;color:#ffffff;pointer-events:none;z-index:10;text-shadow:0 0 10px rgba(255,215,0,0.5);font-weight:bold}
 /* INTRO */
-#intro-screen{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 30%,#1a0a4a 0%,#0d0628 40%,#050015 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow:hidden}
+#intro-screen{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 30%,#1a0a4a 0%,#0d0628 40%,#050015 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(24px + var(--safe-top)) calc(24px + var(--safe-right)) calc(24px + var(--safe-bottom)) calc(24px + var(--safe-left));overflow:hidden}
     /* 인트로 별빛 우주 배경 애니메이션 */
     #intro-stars-canvas{position:absolute;inset:0;z-index:0;pointer-events:none}
     #intro-screen>*:not(#intro-stars-canvas){position:relative;z-index:1}
@@ -49,7 +54,7 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 #app-info-btn{background:rgba(255,255,255,0.08)}
 #pwa-install-btn{background:rgba(3,105,161,0.22);color:#c7ecff}
 @media (max-width:420px){
-  #intro-screen{padding:20px}
+  #intro-screen{padding:calc(20px + var(--safe-top)) calc(20px + var(--safe-right)) calc(20px + var(--safe-bottom)) calc(20px + var(--safe-left))}
   .mode-select-btns{width:min(94vw,520px);gap:10px;margin-top:22px}
   .mode-primary-actions{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
   .mode-secondary-actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
@@ -58,28 +63,28 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
   .mode-secondary{min-height:46px;padding:9px 5px;font-size:clamp(11px,2.8vw,13px)}
 }
 @media (orientation:landscape) and (max-height:500px){
-  #intro-screen{justify-content:center;padding:12px 18px}
+  #intro-screen{justify-content:center;padding:calc(12px + var(--safe-top)) calc(18px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(18px + var(--safe-left))}
   #intro-screen .rocket{display:none}
   #intro-screen h1{font-size:clamp(26px,5.2vw,34px);margin:0 0 6px}
   #intro-screen p{font-size:clamp(12px,2.7vw,16px);line-height:1.35;max-width:520px}
   .mode-select-btns{width:min(72vw,520px);gap:8px;margin-top:12px}
   .mode-primary-actions{gap:8px}
   .mode-secondary-actions{gap:8px}
-  .mode-select-btn{border-radius:14px;padding:8px 8px;min-height:40px}
+  .mode-select-btn{border-radius:14px;padding:8px 8px;min-height:44px}
   .mode-primary{min-height:48px;font-size:clamp(15px,3vw,20px)}
-  .mode-secondary{min-height:34px;padding:6px 6px;font-size:clamp(10px,2.2vw,12px)}
+  .mode-secondary{min-height:44px;padding:6px 6px;font-size:clamp(10px,2.2vw,12px)}
   #last-updated{margin-top:8px !important;margin-bottom:0 !important;font-size:10px !important}
 }
 /* TOP BUTTONS */
-#back-btn,#rank-open-btn{position:fixed;top:15px;border-radius:20px;padding:8px 16px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;pointer-events:all;backdrop-filter:blur(8px);transition:background 0.2s;z-index:20;display:none}
-#back-btn{left:15px;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3)}
-#rank-open-btn{left:110px;background:rgba(255,215,0,0.18);border:2px solid rgba(255,215,0,0.6);color:#ffd700;box-shadow:0 0 10px rgba(255,215,0,0.3)}
-#lives-display{position:fixed;top:42px;right:15px;font-size:20px;pointer-events:none;z-index:10;text-shadow:0 0 10px rgba(0,0,0,0.8)}
+#back-btn,#rank-open-btn{position:fixed;top:calc(15px + var(--safe-top));border-radius:20px;padding:8px 16px;min-height:44px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;pointer-events:all;backdrop-filter:blur(8px);transition:background 0.2s;z-index:20;display:none}
+#back-btn{left:calc(15px + var(--safe-left));background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3)}
+#rank-open-btn{left:calc(110px + var(--safe-left));background:rgba(255,215,0,0.18);border:2px solid rgba(255,215,0,0.6);color:#ffd700;box-shadow:0 0 10px rgba(255,215,0,0.3)}
+#lives-display{position:fixed;top:calc(45px + var(--safe-top));right:calc(15px + var(--safe-right));font-size:20px;pointer-events:none;z-index:10;text-shadow:0 0 10px rgba(0,0,0,0.8)}
 /* PLAY SETTINGS */
-#play-settings{position:fixed;bottom:20px;left:20px;display:none;flex-direction:column;gap:8px;z-index:20}
+#play-settings{position:fixed;bottom:calc(20px + var(--safe-bottom));left:calc(20px + var(--safe-left));display:none;flex-direction:column;gap:8px;z-index:20}
 .setting-row{display:flex;gap:8px;align-items:center}
 .setting-label{font-size:13px;color:rgba(255,255,255,0.6);min-width:40px}
-.setting-btn{background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:14px;padding:6px 13px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:13px;color:#fff;cursor:pointer;pointer-events:all;transition:all 0.2s}
+.setting-btn{background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:14px;padding:6px 13px;min-height:44px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:13px;color:#fff;cursor:pointer;pointer-events:all;transition:all 0.2s}
 .setting-btn.active{background:linear-gradient(135deg,rgba(124,58,237,0.6),rgba(219,39,119,0.5));border-color:rgba(200,100,255,0.7)}
 /* MILESTONE */
 #milestone-overlay{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);flex-direction:column}
@@ -90,7 +95,7 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 #milestone-continue{background:linear-gradient(135deg,#059669,#0891b2);border:none;border-radius:28px;padding:14px 40px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:clamp(16px,4vw,24px);color:#fff;cursor:pointer;pointer-events:all;box-shadow:0 0 30px rgba(5,150,105,0.4)}
 /* RANK OVERLAY */
 #rank-overlay{position:fixed;inset:0;z-index:105;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px)}
-#rank-panel{background:linear-gradient(145deg,#1a0a3e,#0a1a3e);border:2px solid rgba(255,215,0,0.4);border-radius:28px;padding:28px 24px;width:min(92vw,420px);max-height:85vh;overflow:hidden;display:flex;flex-direction:column;color:#fff;text-align:center;box-shadow:0 0 60px rgba(255,215,0,0.2)}
+#rank-panel{background:linear-gradient(145deg,#1a0a3e,#0a1a3e);border:2px solid rgba(255,215,0,0.4);border-radius:28px;padding:28px 24px;width:min(92vw,420px);max-height:calc(100vh - var(--safe-top) - var(--safe-bottom) - 32px);overflow:hidden;display:flex;flex-direction:column;color:#fff;text-align:center;box-shadow:0 0 60px rgba(255,215,0,0.2)}
     /* 랭킹 리스트 스크롤 영역 */
     .rank-list-wrapper{flex:1;overflow-y:auto !important;-webkit-overflow-scrolling:touch;touch-action:pan-y !important;max-height:50vh;margin-bottom:12px;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(255,215,0,0.3) transparent}
     .rank-list-wrapper::-webkit-scrollbar{width:6px}
@@ -116,22 +121,22 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 #rank-status{font-size:12px;color:rgba(255,255,255,0.4);min-height:18px}
 /* SAVE OVERLAY */
 #save-overlay{position:fixed;inset:0;z-index:106;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px)}
-#save-panel{background:linear-gradient(145deg,#1a0a3e,#0a1a3e);border:2px solid rgba(160,100,255,0.5);border-radius:28px;padding:32px 28px;width:min(90vw,360px);color:#fff;text-align:center;box-shadow:0 0 60px rgba(120,60,255,0.4)}
+#save-panel{background:linear-gradient(145deg,#1a0a3e,#0a1a3e);border:2px solid rgba(160,100,255,0.5);border-radius:28px;padding:32px 28px;width:min(90vw,360px);max-height:calc(100vh - var(--safe-top) - var(--safe-bottom) - 32px);overflow-y:auto;touch-action:pan-y;color:#fff;text-align:center;box-shadow:0 0 60px rgba(120,60,255,0.4)}
 #save-panel h3{font-size:clamp(17px,4.5vw,24px);margin-bottom:8px;text-shadow:0 0 20px #a06aff}
 #save-panel p{font-size:14px;color:rgba(255,255,255,0.65);margin-bottom:18px}
 #player-name-input{width:100%;padding:13px 16px;border-radius:14px;border:2px solid rgba(160,100,255,0.5);background:rgba(255,255,255,0.08);color:#fff;font-family:'Arial Rounded MT Bold',sans-serif;font-size:clamp(15px,4vw,19px);text-align:center;outline:none;margin-bottom:16px}
 #player-name-input::placeholder{color:rgba(255,255,255,0.3)}
 .save-btns{display:flex;gap:10px;justify-content:center}
-#save-confirm-btn{background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:18px;padding:12px 28px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;pointer-events:all}
-#save-cancel-btn{background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:18px;padding:12px 22px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;pointer-events:all}
+#save-confirm-btn{background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:18px;padding:12px 28px;min-height:48px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;pointer-events:all}
+#save-cancel-btn{background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:18px;padding:12px 22px;min-height:48px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;pointer-events:all}
 /* PWA 설치 버튼 스타일 */
 #pwa-install-btn:active{transform:scale(0.95)}
 /* 바로가기 가이드 모달 스타일 */
 #pwa-guide-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px)}
-#pwa-guide-panel{background:linear-gradient(145deg,#1e1b4b,#0f172a);border:2px solid rgba(255,215,0,0.4);border-radius:28px;padding:28px 24px;width:min(92vw,370px);color:#fff;text-align:center;box-shadow:0 0 60px rgba(120,60,255,0.4)}
+#pwa-guide-panel{background:linear-gradient(145deg,#1e1b4b,#0f172a);border:2px solid rgba(255,215,0,0.4);border-radius:28px;padding:28px 24px;width:min(92vw,370px);max-height:calc(100vh - var(--safe-top) - var(--safe-bottom) - 32px);overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;color:#fff;text-align:center;box-shadow:0 0 60px rgba(120,60,255,0.4)}
 #pwa-guide-panel h3{font-size:20px;margin-bottom:14px;color:#ffd700;text-shadow:0 0 15px rgba(255,215,0,0.5)}
 #pwa-guide-panel p{font-size:14px;color:rgba(255,255,255,0.85);line-height:1.7;margin-bottom:20px;text-align:left}
-#pwa-guide-close-btn{background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:18px;padding:12px 24px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;width:100%;font-weight:bold}
+#pwa-guide-close-btn{background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:18px;padding:12px 24px;min-height:48px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:15px;color:#fff;cursor:pointer;width:100%;font-weight:bold}
 /* 랭킹 스크롤 버튼 스타일 */
 .rank-scroll-btn {
   background: rgba(255, 255, 255, 0.12);
@@ -147,6 +152,7 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
   margin: 4px 0;
   transition: background 0.15s, transform 0.1s;
   font-weight: bold;
+  min-height: 44px;
   box-shadow: 0 0 10px rgba(0,0,0,0.3);
 }
 .rank-scroll-btn:active {
@@ -161,6 +167,43 @@ body{font-family:'Arial Rounded MT Bold','Nunito',sans-serif}
 #ending-overlay p{font-size:clamp(14px,3.5vw,22px);color:rgba(255,255,255,0.9);line-height:1.7;max-width:500px;margin-bottom:24px}
 #ending-continue{background:linear-gradient(135deg,#b45309,#ffd700);border:none;border-radius:30px;padding:16px 44px;font-family:'Arial Rounded MT Bold',sans-serif;font-size:clamp(18px,4.5vw,28px);color:#000;cursor:pointer;pointer-events:all;font-weight:bold;box-shadow:0 0 50px rgba(255,215,0,0.5);animation:pulse-end 2s ease-in-out infinite}
 @keyframes pulse-end{0%,100%{box-shadow:0 0 50px rgba(255,215,0,0.5)}50%{box-shadow:0 0 80px rgba(255,215,0,0.9)}}
+
+/* 전체화면 PWA의 노치, 상태 표시줄, 홈 인디케이터 안전 영역 */
+#milestone-overlay,#rank-overlay,#save-overlay,#pwa-guide-overlay,#ending-overlay,#app-info-overlay{padding:calc(12px + var(--safe-top)) calc(12px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(12px + var(--safe-left))}
+#app-info-overlay>div{max-height:calc(100vh - var(--safe-top) - var(--safe-bottom) - 32px) !important;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+@supports (height:100dvh){
+  #rank-panel,#save-panel,#pwa-guide-panel{max-height:calc(100dvh - var(--safe-top) - var(--safe-bottom) - 32px)}
+  #app-info-overlay>div{max-height:calc(100dvh - var(--safe-top) - var(--safe-bottom) - 32px) !important}
+}
+
+/* 낮은 가로형 휴대폰: 게임 중앙 영역과 랭킹 목록을 모두 확보 */
+@media (orientation:landscape) and (max-height:500px){
+  #question-banner{top:calc(48px + var(--safe-top));padding:4px 22px;border-width:2px;border-radius:22px;font-size:clamp(26px,5vw,38px)}
+  #message-box{bottom:calc(56px + var(--safe-bottom));max-width:72vw;white-space:normal;font-size:clamp(16px,2.8vw,22px)}
+  #back-btn,#rank-open-btn{top:calc(8px + var(--safe-top));padding:6px 14px}
+  #back-btn{left:calc(10px + var(--safe-left))}
+  #rank-open-btn{left:calc(104px + var(--safe-left))}
+  #score-display{top:calc(10px + var(--safe-top));right:calc(12px + var(--safe-right));font-size:16px}
+  #lives-display{top:calc(38px + var(--safe-top));right:calc(12px + var(--safe-right));font-size:18px}
+  #play-settings{bottom:calc(8px + var(--safe-bottom));left:calc(10px + var(--safe-left))}
+  #settings-panel{max-height:calc(100vh - var(--safe-top) - var(--safe-bottom) - 64px);overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+  #rank-panel{width:min(92vw,560px);max-height:calc(100vh - var(--safe-top) - var(--safe-bottom) - 16px);padding:10px 16px;border-radius:20px}
+  #rank-panel h3{font-size:22px;margin-bottom:4px}
+  .rank-list-wrapper{min-height:64px;max-height:none;margin-bottom:2px}
+  .rank-list{margin-bottom:0}
+  .rank-scroll-btn{padding:5px 0;margin:2px 0}
+  .rank-btns{gap:8px;margin-bottom:2px}
+  .rank-btn-action{min-height:44px;padding:7px 16px}
+  #rank-status{min-height:12px;font-size:10px}
+  #pwa-guide-panel{width:min(86vw,520px);padding:14px 18px;border-radius:20px}
+  #pwa-guide-panel h3{font-size:18px;margin-bottom:8px}
+  #pwa-guide-panel p{font-size:13px;line-height:1.45;margin-bottom:10px}
+  #save-panel{padding:16px 22px;border-radius:20px}
+  #milestone-overlay .ms-emoji,#ending-overlay .end-emoji{font-size:50px}
+  #milestone-overlay h2,#ending-overlay h1{font-size:24px;margin:4px 12px}
+  #milestone-overlay p,#ending-overlay p{font-size:13px;line-height:1.35;margin-bottom:8px}
+  #milestone-continue,#ending-continue{min-height:44px;padding:8px 28px;font-size:17px}
+}
 </style>
 </head>
 <body>
@@ -652,7 +695,8 @@ class Orb {
     }
     if(this.x-this.r<0){this.x=this.r;this.vx=Math.abs(this.vx);this.bounceVx=Math.abs(this.bounceVx);}
     if(this.x+this.r>W){this.x=W-this.r;this.vx=-Math.abs(this.vx);this.bounceVx=-Math.abs(this.bounceVx);}
-    if(this.y-this.r<170){this.y=this.r+170;this.vy=Math.abs(this.vy);this.bounceVy=Math.abs(this.bounceVy);}
+    const topLimit=getOrbTopLimit(H);
+    if(this.y-this.r<topLimit){this.y=this.r+topLimit;this.vy=Math.abs(this.vy);this.bounceVy=Math.abs(this.bounceVy);}
     // 공이 화면 하단 85% 이상으로 내려가지 않도록 제한
     const bottomLimit=H*0.85;
     if(this.y+this.r>bottomLimit){this.y=bottomLimit-this.r;this.vy=-Math.abs(this.vy);this.bounceVy=-Math.abs(this.bounceVy);}
@@ -745,6 +789,10 @@ class Particle {
 }
 
 // ── SETUP LEVEL ──
+function getOrbTopLimit(H){
+  return H<=500?Math.max(88,Math.min(120,H*0.3)):170;
+}
+
 function setupLevel(p){
   question=generateQuestion();
   const qb=document.getElementById('question-banner');
@@ -756,11 +804,13 @@ function setupLevel(p){
   while(decoys.length<4){let d=Math.max(0,Math.floor(Math.random()*range));if(!used.has(d)){decoys.push(d);used.add(d);}}
   const all=[question.ans,...decoys];
   for(let i=all.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[all[i],all[j]]=[all[j],all[i]];}
+  const orbRadius=34;
+  const topLimit=getOrbTopLimit(H);
+  const minY=topLimit+orbRadius;
+  const maxY=Math.max(minY,H*0.85-orbRadius);
   all.forEach((n,i)=>{
     let x,y, attempts=0;
-    // 공 생성 시에도 하단 85% 이내에서만 배치
-    const spawnBottom=H*0.85;
-    do{x=80+Math.random()*(W-160);y=220+Math.random()*Math.max(10,spawnBottom-280);attempts++;}while(Math.hypot(x-W/2,y-H/2)<140 && attempts<50);
+    do{x=80+Math.random()*(W-160);y=minY+Math.random()*Math.max(0,maxY-minY);attempts++;}while(Math.hypot(x-W/2,y-H/2)<140 && attempts<50);
     orbs.push(new Orb(n,x,y,n===question.ans));
   });
   blackHole=new BlackHole(W/2,H/2);
@@ -801,13 +851,13 @@ new p5(function(p){
     if(window.PointerEvent){
       el.addEventListener('pointerdown',e=>{
         e.preventDefault();
-        el.setPointerCapture(e.pointerId);
+        try{if(el.setPointerCapture)el.setPointerCapture(e.pointerId);}catch(err){}
         unlockAudio();
         onPress(e.clientX,e.clientY);
       },{passive:false});
       el.addEventListener('pointermove',e=>{
         e.preventDefault();
-        if(e.buttons>0||e.pressure>0) onMove(e.clientX,e.clientY);
+        onMove(e.clientX,e.clientY);
       },{passive:false});
       el.addEventListener('pointerup',e=>{
         e.preventDefault();
@@ -817,6 +867,7 @@ new p5(function(p){
         e.preventDefault();
         onRelease();
       },{passive:false});
+      el.addEventListener('lostpointercapture',onRelease);
     }else{
       el.addEventListener('touchstart',e=>{
         e.preventDefault();
@@ -859,6 +910,7 @@ new p5(function(p){
   };
 
   p.windowResized=function(){
+    if(dragging){dragging.isDragged=false;dragging=null;}
     p.resizeCanvas(window.innerWidth,window.innerHeight);
     if(blackHole){blackHole.x=p.width/2;blackHole.y=p.height/2;}
     bgStars.forEach(s=>{s.x=Math.random()*p.width;s.y=Math.random()*p.height;});
